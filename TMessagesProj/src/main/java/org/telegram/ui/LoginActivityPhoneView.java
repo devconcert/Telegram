@@ -29,7 +29,7 @@ import org.telegram.messenger.TLObject;
 import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.RPCRequest;
 import org.telegram.ui.Views.ActionBar.BaseFragment;
 import org.telegram.ui.Views.SlideView;

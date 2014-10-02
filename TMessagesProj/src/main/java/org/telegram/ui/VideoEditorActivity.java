@@ -44,7 +44,7 @@ import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
 import org.telegram.android.MediaController;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Views.ActionBar.ActionBarLayer;
 import org.telegram.ui.Views.ActionBar.ActionBarMenu;

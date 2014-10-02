@@ -25,7 +25,7 @@ import org.telegram.messenger.TLRPC;
 import org.telegram.android.ContactsController;
 import org.telegram.android.Emoji;
 import org.telegram.android.MessagesController;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.android.MessageObject;
 import org.telegram.android.ImageReceiver;

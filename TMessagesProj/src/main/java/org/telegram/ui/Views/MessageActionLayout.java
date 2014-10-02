@@ -11,7 +11,7 @@ package org.telegram.ui.Views;
 import android.widget.FrameLayout;
 
 import org.telegram.android.AndroidUtilities;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 
 public class MessageActionLayout extends FrameLayout {
     public TightTextView messageTextView;

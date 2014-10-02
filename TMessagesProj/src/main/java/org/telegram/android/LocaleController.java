@@ -20,7 +20,7 @@ import android.util.Xml;
 
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ApplicationLoader;
@@ -154,6 +154,14 @@ public class LocaleController {
                 "tr", "vi", "wo", "yo", "zh", "bo", "dz", "id", "jv", "ka", "km", "kn", "ms", "th"}, new PluralRules_None());
 
         LocaleInfo localeInfo = new LocaleInfo();
+        localeInfo.name = "한국어";
+        localeInfo.nameEnglish = "South Korea";
+        localeInfo.shortName = "ko";
+        localeInfo.pathToFile = null;
+        sortedLanguages.add(localeInfo);
+        languagesDict.put(localeInfo.shortName, localeInfo);
+
+        localeInfo = new LocaleInfo();
         localeInfo.name = "English";
         localeInfo.nameEnglish = "English";
         localeInfo.shortName = "en";

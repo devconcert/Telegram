@@ -23,7 +23,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ApplicationLoader;
 

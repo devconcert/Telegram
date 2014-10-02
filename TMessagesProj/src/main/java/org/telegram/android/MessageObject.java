@@ -19,7 +19,7 @@ import android.text.util.Linkify;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.TLRPC;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 import org.telegram.messenger.UserConfig;
 
 import java.util.AbstractMap;

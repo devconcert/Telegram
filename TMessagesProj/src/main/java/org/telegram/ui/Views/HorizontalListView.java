@@ -23,7 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.Scroller;
 
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 
 public class HorizontalListView extends AdapterView<ListAdapter> {
 
