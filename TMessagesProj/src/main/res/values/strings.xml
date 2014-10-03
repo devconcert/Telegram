@@ -156,9 +156,10 @@
     <string name="ReplyToUser">Reply to %1$s</string>
     <string name="NotificationMessagesPeopleDisplayOrder">%1$s %2$s</string>
     <!--contacts view-->
-    <string name="SelectContact">Select Contact</string>
+    <string name="SelectContact">New Select Contact(Normal Chat)</string>
+    <string name="SelectSecretContact">New Select Contact(Secret Chat)</string>
     <string name="NoContacts">No contacts yet</string>
-    <string name="InviteText">Hey, let\'s switch to Telegram: http://telegram.org/dl2</string>
+    <string name="InviteText">텔레그램으로 톡하자!!\n\n마켓 다운\nhttps://play.google.com/store/apps/details?id=org.telegramkr.messenger</string>
     <string name="TodayAt">today at</string>
     <string name="YesterdayAt">yesterday at</string>
     <string name="Online">online</string>

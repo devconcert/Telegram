@@ -33,7 +33,7 @@
     <string name="NewMessages">새 메시지</string>
     <string name="Settings">설정</string>
     <string name="Contacts">주소록</string>
-    <string name="NewGroup">새 그룹</string>
+    <string name="NewGroup">새 그룹대화</string>
     <string name="Yesterday">어제</string>
     <string name="NoResult">결과 없음</string>
     <string name="NoChats">채팅방이 없습니다...</string>
@@ -41,7 +41,7 @@
     <string name="WaitingForNetwork">네트워크 연결을 기다리는 중...</string>
     <string name="Connecting">연결 중...</string>
     <string name="Updating">업데이트 중...</string>
-    <string name="NewSecretChat">비밀대화 시작</string>
+    <string name="NewSecretChat">새 비밀대화</string>
     <string name="AwaitingEncryption">%s님을 기다리는 중...</string>
     <string name="EncryptionRejected">비밀대화가 끝났습니다</string>
     <string name="EncryptionProcessing">암호키 교환중...</string>
@@ -99,7 +99,7 @@
     <string name="EncryptedPlaceholderTitleIncoming">%s님이 비밀대화에 초대했습니다.</string>
     <string name="EncryptedPlaceholderTitleOutgoing">%s님을 비밀대화에 초대했습니다.</string>
     <string name="EncryptedDescriptionTitle">비밀대화는</string>
-    <string name="EncryptedDescription1">단대단 암호화를 사용합니다</string>
+    <string name="EncryptedDescription1">사용자간 대화를 암호화합니다</string>
     <string name="EncryptedDescription2">서버에 어떤 흔적도 남기지 않습니다</string>
     <string name="EncryptedDescription3">일정 시간 후에 자동삭제가 가능합니다</string>
     <string name="EncryptedDescription4">전달 기능이 허용되지 않습니다</string>
@@ -108,7 +108,7 @@
     <string name="DeleteThisGroup">이 그룹 삭제</string>
     <string name="DeleteThisChat">이 채팅방 삭제</string>
     <string name="SlideToCancel">밀어서 취소</string>
-    <string name="SaveToDownloads">다운로드 폴더에 저장</string>
+    <string name="SaveToDownloads">\'다운로드\' 폴더에 저장</string>
     <string name="ApplyLocalizationFile">언어 파일 적용</string>
     <string name="UnsupportedAttachment">지원하지 않는 형식입니다</string>
     <!--notification-->
@@ -156,11 +156,13 @@
     <string name="ReplyToUser">%1$s님에게 답장하기</string>
     <string name="NotificationMessagesPeopleDisplayOrder">%2$s %1$s</string>
     <!--contacts view-->
-    <string name="SelectContact">대화상대 선택</string>
+    <string name="SelectContact">새 대화상대 선택(일반대화)</string>
+    <string name="SelectSecretContact">새 대화상대 선택(비밀대화)</string>
     <string name="NoContacts">대화상대가 없습니다</string>
-    <string name="InviteText">텔레그램으로 초대합니다! http://telegram.org/dl2</string>
+    <string name="InviteText">텔레그램으로 톡하자!!\n\n마켓 다운\nhttps://play.google.com/store/apps/details?id=org.telegramkr.messenger</string>
     <string name="TodayAt">오늘</string>
     <string name="YesterdayAt">어제</string>
+    <string name="OtherAt">시간:</string>
     <string name="Online">온라인</string>
     <string name="Offline">오프라인</string>
     <string name="LastSeen">마지막 접속: </string>
@@ -208,7 +210,7 @@
     <string name="ShortMessageLifetime1h">1시간</string>
     <string name="ShortMessageLifetime1d">하루</string>
     <string name="ShortMessageLifetime1w">일주일</string>
-    <string name="EncryptionKeyDescription">이 이미지는 <![CDATA[<b>]]>%1$s<![CDATA[</b>]]>님과의 비밀대화에 사용 중인 암호화 키의 모습입니다.<![CDATA[<br><br>]]>이 이미지가 <![CDATA[<b>]]>%2$s<![CDATA[</b>]]>님의 암호화 키와 똑같다면 대화는 200%% 안전합니다.<![CDATA[<br><br>]]>더 자세한 사항은 telegram.org 를 참고해 주세요.</string>
+    <string name="EncryptionKeyDescription">이 이미지는 <![CDATA[<b>]]>%1$s<![CDATA[</b>]]>님과의 비밀대화에 사용중인 암호화 키의 모습입니다.<![CDATA[<br><br>]]>이 이미지가 <![CDATA[<b>]]>%2$s<![CDATA[</b>]]>님의 암호화키와 똑같다면 대화는 200%% 안전합니다.<![CDATA[<br><br>]]>더 자세한 사항은 http://telegramkr.blogspot.com 를 참고해 주세요.</string>
     <!--settings view-->
     <string name="ResetNotificationsText">모든 알림 설정이 초기화되었습니다</string>
     <string name="TextSize">채팅 글자 크기</string>
@@ -303,7 +305,7 @@
     <string name="OriginalVideo">동영상 원본</string>
     <string name="EditedVideo">편집한 동영상</string>
     <string name="SendingVideo">동영상 보내는 중...</string>
-    <string name="CompressVideo">동영상 크기 줄이기</string>
+    <string name="CompressVideo">동영상 압축</string>
     <!--button titles-->
     <string name="Next">다음</string>
     <string name="Back">뒤로</string>
@@ -318,8 +320,8 @@
     <string name="Delete">삭제</string>
     <string name="Forward">전달</string>
     <string name="Retry">재전송</string>
-    <string name="FromCamera">사진 촬영</string>
-    <string name="FromGalley">앨범</string>
+    <string name="FromCamera">카메라</string>
+    <string name="FromGalley">사진 앨범</string>
     <string name="DeletePhoto">사진 삭제</string>
     <string name="OpenPhoto">사진 열기</string>
     <string name="Set">설정</string>
@@ -341,7 +343,7 @@
     <string name="ActionYouCreateGroup">그룹을 만들었습니다</string>
     <string name="ActionKickUserYou">un1님이 추방했습니다</string>
     <string name="ActionAddUserYou">un1님이 그룹에 초대했습니다</string>
-    <string name="UnsuppotedMedia">이 메시지는 사용 중인 텔레그램의 버전이 낮아 지원하지 않습니다. 앱을 업데이트 하세요: http://telegram.org/update</string>
+    <string name="UnsuppotedMedia">이 메시지는 사용 중인 텔레그램의 버전이 낮아 지원하지 않습니다. 앱을 업데이트 하세요: http://telegramkr.blogspot.com</string>
     <string name="AttachPhoto">사진</string>
     <string name="AttachVideo">동영상</string>
     <string name="AttachLocation">위치</string>
@@ -350,7 +352,7 @@
     <string name="AttachAudio">음성메시지</string>
     <string name="FromYou">나</string>
     <string name="ActionTakeScreenshootYou">화면을 캡처했습니다!</string>
-    <string name="ActionTakeScreenshoot">un1님이 화면을 캡처했습니다!</string>
+    <string name="ActionTakeScreenshoot">un1님이 화면을 캡쳐했습니다!</string>
     <!--Alert messages-->
     <string name="InvalidPhoneNumber">올바른 전화번호를 입력해 주세요</string>
     <string name="CodeExpired">코드가 만료되었습니다. 다시 로그인하세요</string>
@@ -360,7 +362,7 @@
     <string name="InvalidLastName">올바른 성을 입력해 주세요</string>
     <string name="Loading">불러오는 중...</string>
     <string name="NoPlayerInstalled">동영상 재생 앱이 없습니다. 계속하려면 앱을 설치해 주세요.</string>
-    <string name="NoMailInstalled">sms@telegram.org 이메일 주소로 이 문제를 보내주세요.</string>
+    <string name="NoMailInstalled">devconcert@devconcert.net 이메일 주소로 이 문제를 보내주세요.</string>
     <string name="NoHandleAppInstalled">\'%1$s\' 파일 형식을 처리할 앱이 없습니다. 계속하려면 앱을 설치해 주세요.</string>
     <string name="InviteUser">친구가 아직 텔레그램을 사용하지 않네요. 초대해 보세요!</string>
     <string name="AreYouSure">확실합니까?</string>
@@ -369,7 +371,7 @@
     <string name="ForwardMessagesTo">%1$s님에게 메시지를 전달할까요?</string>
     <string name="DeleteChatQuestion">이 채팅방을 삭제할까요?</string>
     <string name="SendMessagesTo">%1$s님에게 메시지를 보낼까요?</string>
-    <string name="AreYouSureLogout">로그아웃을 하시겠습니까?</string>
+    <string name="AreYouSureLogout">로그아웃하시겠습니까?</string>
     <string name="AreYouSureSessions">현재 기기를 제외하고 다른 기기에 로그인된 세션을 모두 종료시킬까요?</string>
     <string name="AreYouSureDeleteAndExit">그룹에서 나갈까요?</string>
     <string name="AreYouSureDeleteThisChat">채팅방을 삭제할까요?</string>
@@ -428,12 +430,12 @@
     <string name="messages_few">메시지 %1$d건</string>
     <string name="messages_many">메시지 %1$d건</string>
     <string name="messages_other">메시지 %1$d건</string>
-    <string name="FromContacts_zero">보낸곳 없음 -</string>
-    <string name="FromContacts_one">채팅방 %1$d개에서</string>
-    <string name="FromContacts_two">채팅방 %1$d개에서</string>
-    <string name="FromContacts_few">채팅방 %1$d개에서</string>
-    <string name="FromContacts_many">채팅방 %1$d개에서</string>
-    <string name="FromContacts_other">채팅방 %1$d개에서</string>
+    <string name="FromContacts_zero">- 보낸사람 없음</string>
+    <string name="FromContacts_one">- %1$d명이 보냄</string>
+    <string name="FromContacts_two">- %1$d명이 보냄</string>
+    <string name="FromContacts_few">- %1$d명이 보냄</string>
+    <string name="FromContacts_many">- %1$d명이 보냄</string>
+    <string name="FromContacts_other">- %1$d명이 보냄</string>
     <!--date formatters-->
     <string name="formatterMonth">M\'월\' d\'일\'</string>
     <string name="formatterYear">yyyy.MM.dd.</string>

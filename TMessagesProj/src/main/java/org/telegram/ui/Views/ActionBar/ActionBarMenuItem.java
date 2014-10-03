@@ -32,7 +32,7 @@ import android.widget.TextView;
 
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
-import org.telegram.messenger.R;
+import org.telegramkr.messenger.R;
 
 import java.lang.reflect.Field;
 
