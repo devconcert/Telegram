@@ -121,7 +121,9 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
         if (fragmentView == null) {
             actionBarLayer.setDisplayHomeAsUpEnabled(true, R.drawable.ic_ab_back);
             actionBarLayer.setBackOverlay(R.layout.updating_state_layout);
-            if (destroyAfterSelect) {
+            if(createSecretChat){
+                actionBarLayer.setTitle(LocaleController.getString("SelectSecretContact", R.string.SelectSecretContact));
+            }else if (destroyAfterSelect) {
                 actionBarLayer.setTitle(LocaleController.getString("SelectContact", R.string.SelectContact));
             } else {
                 actionBarLayer.setTitle(LocaleController.getString("Contacts", R.string.Contacts));
