@@ -80,12 +80,7 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 19
-<<<<<<< HEAD
-        versionCode 346
-        versionName "1.9.3"
-=======
-        versionCode 335
+        versionCode 336
         versionName "1.9.5"
->>>>>>> Add Korean Resource and DateFormat fix.
     }
 }
