@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Locale;
 
 public class ContactsController {
     private Account currentAccount;

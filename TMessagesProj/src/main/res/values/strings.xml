@@ -158,7 +158,7 @@
     <!--contacts view-->
     <string name="SelectContact">Select Contact</string>
     <string name="NoContacts">No contacts yet</string>
-    <string name="InviteText">Hey, let\'s switch to Telegram: http://telegram.org/dl2</string>
+    <string name="InviteText">친구야 우리 텔레그램으로 재미난 이야기하자!!\nhttp://telegramkr.blogspot.kr</string>
     <string name="TodayAt">today at</string>
     <string name="YesterdayAt">yesterday at</string>
     <string name="Online">online</string>
