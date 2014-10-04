@@ -6,4 +6,10 @@
     <color name="settings_background_color">#ffffffff</color>
     <color name="divider">#dcdcdc</color>
     <color name="header">#ff54759e</color>
+
+    <!-- For Passcode Color-->
+    <color name="light_gray">#FFE5E5E5</color>
+    <color name="gray">#FFCCCCCC</color>
+    <color name="black">#FF000000</color>
+    <color name="light_blue">#FF78c8e6</color>
 </resources>

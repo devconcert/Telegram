@@ -110,6 +110,12 @@
             android:theme="@style/Theme.TMessages.PopupNotification">
         </activity>
 
+        <activity
+            android:name="org.telegramkr.passcodelock.core.PasscodeLockActivity"
+            android:theme="@style/TitleTextColor"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
+
         <receiver android:name="org.telegram.android.SmsListener">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
