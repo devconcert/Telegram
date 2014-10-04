@@ -1281,7 +1281,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (user != null) {
                     currentUser = user;
                 }
-                actionBarLayer.setSubtitle(LocaleController.formatUserStatus(currentUser));
+                //actionBarLayer.setSubtitle(LocaleController.formatUserStatus(currentUser));
             }
         } else {
             lastPrintString = printString;

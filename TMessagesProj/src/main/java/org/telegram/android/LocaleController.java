@@ -774,7 +774,7 @@ public class LocaleController {
                 if (user.status.expires == -1) {
                     return getString("Invisible", R.string.Invisible);
                 } else {
-                    return formatDateOnline(user.status.expires);
+                    return getString("Offline", R.string.Offline);//getString("Invisible", R.string.Invisible);//return formatDateOnline(user.status.expires);
                 }
             }
         }

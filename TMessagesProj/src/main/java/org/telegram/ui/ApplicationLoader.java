@@ -42,6 +42,9 @@ import org.telegram.android.NativeLoader;
 import org.telegram.android.ScreenReceiver;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegramkr.passcodelock.core.LockManager;
+import org.telegramkr.passcodelock.core.PasscodeLock;
+import org.telegramkr.passcodelock.core.PasscodeLockActivity;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +64,9 @@ public class ApplicationLoader extends Application {
 
     public static volatile boolean isScreenOn = false;
     public static volatile boolean mainInterfacePaused = true;
+
+    public static boolean isPasscodeLock = false;
+    public static boolean isPasscodeLockOn = false;
 
     public static void postInitApplication() {
         if (applicationInited) {
@@ -85,7 +91,7 @@ public class ApplicationLoader extends Application {
         }
 
         try {
-            PowerManager pm = (PowerManager)ApplicationLoader.applicationContext.getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = (PowerManager) ApplicationLoader.applicationContext.getSystemService(Context.POWER_SERVICE);
             isScreenOn = pm.isScreenOn();
             FileLog.e("tmessages", "screen state = " + isScreenOn);
         } catch (Exception e) {
@@ -101,7 +107,7 @@ public class ApplicationLoader extends Application {
             SendMessagesHelper.getInstance().checkUnsentMessages();
         }
 
-        ApplicationLoader app = (ApplicationLoader)ApplicationLoader.applicationContext;
+        ApplicationLoader app = (ApplicationLoader) ApplicationLoader.applicationContext;
         app.initPlayServices();
         FileLog.e("tmessages", "app initied");
 
@@ -112,6 +118,7 @@ public class ApplicationLoader extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         applicationContext = getApplicationContext();
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
 
@@ -121,6 +128,9 @@ public class ApplicationLoader extends Application {
         java.lang.System.setProperty("java.net.preferIPv6Addresses", "false");
 
         startPushService();
+
+        // For Passcode Lock
+        LockManager.getInstance().enableAppLock(this);
     }
 
     public static void startPushService() {

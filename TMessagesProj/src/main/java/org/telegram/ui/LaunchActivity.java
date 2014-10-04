@@ -9,6 +9,7 @@
 package org.telegram.ui;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -46,6 +47,9 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Views.ActionBar.ActionBarLayout;
 import org.telegram.ui.Views.ActionBar.BaseFragment;
+import org.telegramkr.passcodelock.core.LockManager;
+import org.telegramkr.passcodelock.core.PasscodeLock;
+import org.telegramkr.passcodelock.core.PasscodeLockActivity;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -78,6 +82,17 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ApplicationLoader.postInitApplication();
+
+//
+//        // For PasscodeLock
+//        if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
+//            Intent intent = new Intent(this, PasscodeLockActivity.class);
+//            startActivity(intent);
+//            intent.putExtra(PasscodeLock.TYPE, PasscodeLock.UNLOCK_PASSWORD);
+//            startActivityForResult(intent, PasscodeLock.UNLOCK_PASSWORD);
+//            Toast.makeText(this, "Test00000",
+//                    Toast.LENGTH_SHORT).show();
+//        }
 
         if (!UserConfig.isClientActivated()) {
             Intent intent = getIntent();
@@ -812,6 +827,12 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
                 fragment.onActivityResultFragment(requestCode, resultCode, data);
             }
         }
+
+        if(requestCode == PasscodeLock.UNLOCK_PASSWORD) {
+            if (resultCode == Activity.RESULT_OK) {
+                ApplicationLoader.isPasscodeLock = true;
+            }
+        }
     }
 
     @Override
@@ -824,6 +845,8 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         }
         ApplicationLoader.mainInterfacePaused = true;
         ConnectionsManager.getInstance().setAppPaused(true, false);
+
+        ApplicationLoader.isPasscodeLock = false;
     }
 
     @Override
@@ -846,6 +869,19 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         ApplicationLoader.mainInterfacePaused = false;
         ConnectionsManager.getInstance().setAppPaused(false, false);
         actionBarLayout.getActionBar().setBackOverlayVisible(currentConnectionState != 0);
+
+        // For PasscodeLock
+        if(ApplicationLoader.isPasscodeLockOn) {
+            ApplicationLoader.isPasscodeLockOn = false;
+        } else if(!ApplicationLoader.isPasscodeLock) {
+            ApplicationLoader.isPasscodeLockOn = false;
+            if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
+                Intent intent = new Intent(this, PasscodeLockActivity.class);
+                startActivity(intent);
+                intent.putExtra(PasscodeLock.TYPE, PasscodeLock.UNLOCK_PASSWORD);
+                startActivityForResult(intent, PasscodeLock.UNLOCK_PASSWORD);
+            }
+        }
     }
 
     @Override

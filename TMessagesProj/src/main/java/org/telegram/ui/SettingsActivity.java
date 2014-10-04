@@ -34,6 +34,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.telegramkr.messenger.R;
+
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.ContactsController;
 import org.telegram.PhoneFormat.PhoneFormat;
@@ -50,7 +52,6 @@ import org.telegram.messenger.FileLog;
 import org.telegram.android.MessagesController;
 import org.telegram.android.MessagesStorage;
 import org.telegram.android.NotificationCenter;
-import org.telegramkr.messenger.R;
 import org.telegram.messenger.RPCRequest;
 import org.telegram.messenger.UserConfig;
 import org.telegram.android.MessageObject;
@@ -99,6 +100,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private int contactsReimportRow;
     private int contactsSortRow;
     private int rowCount;
+
+    // For Passcode
+    private int passcodeLockRow;
 
     private static class LinkMovementMethodMy extends LinkMovementMethod {
         @Override
@@ -183,6 +187,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         languageRow = rowCount++;
         notificationRow = rowCount++;
         blockedRow = rowCount++;
+        passcodeLockRow = rowCount++;        // For PasscodeLock
         backgroundRow = rowCount++;
         terminateSessionsRow = rowCount++;
         mediaDownloadSection = rowCount++;
@@ -197,6 +202,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         //contactsSortRow = rowCount++;
         //contactsReimportRow = rowCount++;
         supportSectionRow = rowCount++;
+
         if (BuildVars.DEBUG_VERSION) {
             sendLogsRow = rowCount++;
             clearLogsRow = rowCount++;
@@ -491,6 +497,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                                 });
                         builder.setNegativeButton(LocaleController.getString("OK", R.string.OK), null);
                         showAlertDialog(builder);
+                    }else if (i == passcodeLockRow) {
+                        presentFragment(new SettingsPasscodeLockActivity());
                     }
                 }
             });
@@ -721,7 +729,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
 
         @Override
         public boolean isEnabled(int i) {
-            return i == textSizeRow || i == enableAnimationsRow || i == blockedRow || i == notificationRow || i == backgroundRow ||
+            return i == passcodeLockRow || i == textSizeRow || i == enableAnimationsRow || i == blockedRow || i == notificationRow || i == backgroundRow ||
                     i == askQuestionRow || i == sendLogsRow || i == sendByEnterRow || i == terminateSessionsRow || i == wifiDownloadRow ||
                     i == mobileDownloadRow || i == clearLogsRow || i == roamingDownloadRow || i == languageRow ||
                     i == switchBackendButtonRow || i == telegramFaqRow || i == contactsSortRow || i == contactsReimportRow || i == saveToGalleryRow;
@@ -900,6 +908,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 } else if (i == contactsReimportRow) {
                     textView.setText(LocaleController.getString("ImportContacts", R.string.ImportContacts));
                     divider.setVisibility(View.INVISIBLE);
+                } else if (i == passcodeLockRow) {
+                    textView.setText(LocaleController.getString("PasscodeLock", R.string.PasscodeLock));
+                    divider.setVisibility(passcodeLockRow != 0 ? View.VISIBLE : View.INVISIBLE);
                 }
             } else if (type == 3) {
                 if (view == null) {
@@ -1079,7 +1090,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 return 5;
             } else if (i == enableAnimationsRow || i == sendByEnterRow || i == saveToGalleryRow) {
                 return 3;
-            } else if (i == numberRow || i == notificationRow || i == blockedRow || i == backgroundRow || i == askQuestionRow || i == sendLogsRow || i == terminateSessionsRow || i == clearLogsRow || i == switchBackendButtonRow || i == telegramFaqRow || i == contactsReimportRow) {
+            } else if (i == numberRow || i == notificationRow || i == blockedRow || i == backgroundRow || i == passcodeLockRow || i == askQuestionRow || i == sendLogsRow || i == terminateSessionsRow || i == clearLogsRow || i == switchBackendButtonRow || i == telegramFaqRow || i == contactsReimportRow) {
                 return 2;
             } else if (i == logoutRow) {
                 return 4;

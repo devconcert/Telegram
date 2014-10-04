@@ -435,6 +435,23 @@
     <string name="FromContacts_few">from %1$d contacts</string>
     <string name="FromContacts_many">from %1$d contacts</string>
     <string name="FromContacts_other">from %1$d contacts</string>
+
+
+    <!-- For Passcode -->
+    <string name="PasscodeLock">Passcode Lock</string>
+    <string name="PasscodeLock_unlock">Passcode UnLock</string>
+    <string name="PasscodeLock_manage">Manage passcode</string>
+    <string name="PasscodeLock_enter">Enter passcode</string>
+    <string name="PasscodeLock_enter_old">Enter old passcode</string>
+    <string name="PasscodeLock_reenter">Re-enter passcode</string>
+    <string name="PasscodeLock_change">Change passcode</string>
+    <string name="PasscodeLock_setup">Setup Passcode</string>
+    <string name="PasscodeLock_wrong">Wrong passcode, please try again.</string>
+    <string name="PasscodeLock_disable">Disable passcode</string>
+    <string name="PasscodeLock_enable">Enable passcode</string>
+    <string name="PasscodeLock_clean">CLEAN</string>
+    <string name="PasscodeLock_del">DEL</string>
+
     <!--date formatters-->
     <string name="formatterMonth">MMM dd</string>
     <string name="formatterYear">dd.MM.yy</string>
@@ -445,6 +462,7 @@
     <string name="formatterDay24H">HH:mm</string>
     <string name="formatterDay12H">h:mm a</string>
     <string name="formatDateAtTime">%1$s \'at\' %2$s</string>
+
     <!--Don't change this! Not for localization!-->
     <string name="CacheTag">CACHE_TAG</string>
 </resources>

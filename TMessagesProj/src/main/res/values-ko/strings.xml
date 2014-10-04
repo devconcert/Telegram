@@ -425,6 +425,22 @@ update date : 2014-10-03
     <string name="FromContacts_few">- %1$d명이 보냄</string>
     <string name="FromContacts_many">- %1$d명이 보냄</string>
     <string name="FromContacts_other">- %1$d명이 보냄</string>
+
+    <!-- For Passcode -->
+    <string name="PasscodeLock">화면 암호잠금</string>
+    <string name="PasscodeLock_unlock">암호잠금 해제</string>
+    <string name="PasscodeLock_manage">암호잠금 설정</string>
+    <string name="PasscodeLock_enter">암호를 입력해주세요</string>
+    <string name="PasscodeLock_enter_old">이전 암호를 입력해주세요</string>
+    <string name="PasscodeLock_reenter">암호를 다시 입력해주세요</string>
+    <string name="PasscodeLock_change">암호변경하기</string>
+    <string name="PasscodeLock_setup">암호 설정완료</string>
+    <string name="PasscodeLock_wrong">잘못된 암호입니다. 다시 입력해주세요.</string>
+    <string name="PasscodeLock_disable">텔레그램 암호설정을 해제합니다.</string>
+    <string name="PasscodeLock_enable">텔레그램 암호를 입력해주세요.</string>
+    <string name="PasscodeLock_clean">지움</string>
+    <string name="PasscodeLock_del">삭제</string>
+
     <!--Don't change this! Not for localization!-->
     <string name="CacheTag">CACHE_TAG</string>
 </resources>
