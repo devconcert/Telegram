@@ -76,21 +76,26 @@ public class SettingsPasscodeLockActivity extends BaseFragment{
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                     if (i == passcodeLockServiceRow) {
-                        // 화면 암호잠금 바로 켜기
-                        int type = LockManager.getInstance().getAppLock().isPasscodeSet() ? PasscodeLock.DISABLE_PASSLOCK
-                                : PasscodeLock.ENABLE_PASSLOCK;
-                        Intent intent = new Intent(getParentActivity(), PasscodeLockActivity.class);
-                        intent.putExtra(PasscodeLock.TYPE, type);
-                        startActivityForResult(intent, type);
-
-                    }else if(i == passcodeLockChangePasswordRow){
-                        if(LockManager.getInstance().getAppLock().isPasscodeSet()) {
-                            // 암호 변경 화면 출력
+                        try {
+                            ApplicationLoader.isPasscodeLockOn = true;
+                            int type = LockManager.getInstance().getAppLock().isPasscodeSet() ? PasscodeLock.DISABLE_PASSLOCK
+                                    : PasscodeLock.ENABLE_PASSLOCK;
                             Intent intent = new Intent(getParentActivity(), PasscodeLockActivity.class);
-                            intent.putExtra(PasscodeLock.TYPE, PasscodeLock.CHANGE_PASSWORD);
-                            intent.putExtra(PasscodeLock.MESSAGE,
-                                    LocaleController.getString("PasscodeLock_enter_old", R.string.PasscodeLock_enter_old));
-                            startActivityForResult(intent, PasscodeLock.CHANGE_PASSWORD);
+                            intent.putExtra(PasscodeLock.TYPE, type);
+                            startActivityForResult(intent, type);
+                        } catch(Exception e) {
+                            finishActivity();
+                        }
+                    } else if(i == passcodeLockChangePasswordRow){
+                        if(LockManager.getInstance().getAppLock().isPasscodeSet()) {
+                            try {
+                                Intent intent = new Intent(getParentActivity(), PasscodeLockActivity.class);
+                                intent.putExtra(PasscodeLock.TYPE, PasscodeLock.CHANGE_PASSWORD);
+                                intent.putExtra(PasscodeLock.MESSAGE, LocaleController.getString("PasscodeLock_enter_old", R.string.PasscodeLock_enter_old));
+                                startActivityForResult(intent, PasscodeLock.CHANGE_PASSWORD);
+                            }catch(Exception e) {
+                                finishActivity();
+                            }
                         }
                     }
                 }
@@ -104,6 +109,13 @@ public class SettingsPasscodeLockActivity extends BaseFragment{
         return fragmentView;
     }
 
+    public void finishActivity() {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        getParentActivity().startActivity(intent);
+        getParentActivity().finish();
+    }
     public void updateUI() {
         final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("PasscodeLock", Activity.MODE_PRIVATE);
         if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
@@ -138,6 +150,7 @@ public class SettingsPasscodeLockActivity extends BaseFragment{
             case PasscodeLock.DISABLE_PASSLOCK:
                 if (resultCode == Activity.RESULT_OK) {
                     ApplicationLoader.isPasscodeLockOn = false;
+                    ApplicationLoader.isPasscodeChange = false;
                     Toast.makeText(getParentActivity(), LocaleController.getString("PasscodeLock_disable", R.string.PasscodeLock_disable),
                             Toast.LENGTH_SHORT).show();
                 }
@@ -145,7 +158,7 @@ public class SettingsPasscodeLockActivity extends BaseFragment{
             case PasscodeLock.ENABLE_PASSLOCK:
             case PasscodeLock.CHANGE_PASSWORD:
                 if (resultCode == Activity.RESULT_OK) {
-                    ApplicationLoader.isPasscodeLockOn = true;
+                    ApplicationLoader.isPasscodeChange = true;
                     Toast.makeText(getParentActivity(), LocaleController.getString("PasscodeLock_setup", R.string.PasscodeLock_setup),
                             Toast.LENGTH_SHORT).show();
                 }
@@ -237,7 +250,7 @@ public class SettingsPasscodeLockActivity extends BaseFragment{
                     changePasswordTextView.setText(LocaleController.getString("PasscodeLock_change", R.string.PasscodeLock_change));
                     if(LockManager.getInstance().getAppLock().isPasscodeSet()) {
                         changePasswordTextView.setTextColor(Color.BLACK);
-                        ApplicationLoader.isPasscodeLockOn = true;
+                        ApplicationLoader.isPasscodeLockOn = false;
                     } else {
                         changePasswordTextView.setTextColor(Color.GRAY);
                     }

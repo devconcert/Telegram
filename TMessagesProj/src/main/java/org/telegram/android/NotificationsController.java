@@ -319,7 +319,7 @@ public class NotificationsController {
                     } else if (choosenSoundPath == null) {
                         choosenSoundPath = preferences.getString("GlobalSoundPath", defaultPath);
                     }
-                    needVibrate = preferences.getInt("vibrate_messages", 0);
+                    needVibrate = preferences.getInt("vibrate_messages", 1);
                     ledColor = preferences.getInt("MessagesLed", 0xff00ff00);
                 }
                 if (preferences.contains("color_" + dialog_id)) {

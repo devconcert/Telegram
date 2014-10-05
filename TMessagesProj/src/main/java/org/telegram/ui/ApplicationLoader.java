@@ -65,8 +65,9 @@ public class ApplicationLoader extends Application {
     public static volatile boolean isScreenOn = false;
     public static volatile boolean mainInterfacePaused = true;
 
-    public static boolean isPasscodeLock = false;
+    public static boolean isPasscodeLockSuccess = false;
     public static boolean isPasscodeLockOn = false;
+    public static boolean isPasscodeChange = false;
 
     public static void postInitApplication() {
         if (applicationInited) {

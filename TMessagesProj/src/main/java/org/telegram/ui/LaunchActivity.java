@@ -9,7 +9,6 @@
 package org.telegram.ui;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +36,7 @@ import android.widget.Toast;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.android.SendMessagesHelper;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
 import org.telegram.android.LocaleController;
@@ -830,7 +830,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
 
         if(requestCode == PasscodeLock.UNLOCK_PASSWORD) {
             if (resultCode == Activity.RESULT_OK) {
-                ApplicationLoader.isPasscodeLock = true;
+                ApplicationLoader.isPasscodeLockSuccess = true;
             }
         }
     }
@@ -846,7 +846,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         ApplicationLoader.mainInterfacePaused = true;
         ConnectionsManager.getInstance().setAppPaused(true, false);
 
-        ApplicationLoader.isPasscodeLock = false;
+        ApplicationLoader.isPasscodeLockSuccess = false;
     }
 
     @Override
@@ -870,17 +870,30 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         ConnectionsManager.getInstance().setAppPaused(false, false);
         actionBarLayout.getActionBar().setBackOverlayVisible(currentConnectionState != 0);
 
-        // For PasscodeLock
-        if(ApplicationLoader.isPasscodeLockOn) {
+        if(ApplicationLoader.isPasscodeLockOn && ApplicationLoader.isPasscodeLockSuccess){
             ApplicationLoader.isPasscodeLockOn = false;
-        } else if(!ApplicationLoader.isPasscodeLock) {
-            ApplicationLoader.isPasscodeLockOn = false;
+            startPasscodeLockActivity();
+        } else if(ApplicationLoader.isPasscodeChange) {
+            ApplicationLoader.isPasscodeChange = false;
+        } else if(ApplicationLoader.isPasscodeLockSuccess == false) {
             if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
-                Intent intent = new Intent(this, PasscodeLockActivity.class);
-                startActivity(intent);
-                intent.putExtra(PasscodeLock.TYPE, PasscodeLock.UNLOCK_PASSWORD);
-                startActivityForResult(intent, PasscodeLock.UNLOCK_PASSWORD);
+                ApplicationLoader.isPasscodeLockOn = false;
+                startPasscodeLockActivity();
             }
+        }
+    }
+
+    public void startPasscodeLockActivity() {
+        try {
+            Intent intent = new Intent(this, PasscodeLockActivity.class);
+            intent.putExtra(PasscodeLock.TYPE, PasscodeLock.UNLOCK_PASSWORD);
+            startActivityForResult(intent, PasscodeLock.UNLOCK_PASSWORD);
+        }catch(Exception e){
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            startActivity(intent);
+            finish();
         }
     }
 
