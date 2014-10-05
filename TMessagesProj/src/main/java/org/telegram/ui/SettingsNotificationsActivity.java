@@ -257,7 +257,7 @@ public class SettingsNotificationsActivity extends BaseFragment implements Notif
                     } else if (i == contactJoinedRow) {
                         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
                         SharedPreferences.Editor editor = preferences.edit();
-                        boolean enabled = preferences.getBoolean("EnableContactJoined", true);
+                        boolean enabled = preferences.getBoolean("EnableContactJoined", false);
                         MessagesController.getInstance().enableJoined = !enabled;
                         editor.putBoolean("EnableContactJoined", !enabled);
                         editor.commit();
@@ -601,7 +601,7 @@ public class SettingsNotificationsActivity extends BaseFragment implements Notif
                     textView.setText(LocaleController.getString("InAppPreview", R.string.InAppPreview));
                     divider.setVisibility(View.INVISIBLE);
                 } else if (i == contactJoinedRow) {
-                    enabled = preferences.getBoolean("EnableContactJoined", true);
+                    enabled = preferences.getBoolean("EnableContactJoined", false);
                     textView.setText(LocaleController.getString("ContactJoined", R.string.ContactJoined));
                     divider.setVisibility(View.INVISIBLE);
                 } else if (i == pebbleAlertRow) {
@@ -701,7 +701,7 @@ public class SettingsNotificationsActivity extends BaseFragment implements Notif
                 textView.setText(LocaleController.getString("Vibrate", R.string.Vibrate));
                 divider.setVisibility(View.VISIBLE);
                 if (i == messageVibrateRow) {
-                    value = preferences.getInt("vibrate_messages", 0);
+                    value = preferences.getInt("vibrate_messages", 1);
                 } else if (i == groupVibrateRow) {
                     value = preferences.getInt("vibrate_group", 0);
                 }

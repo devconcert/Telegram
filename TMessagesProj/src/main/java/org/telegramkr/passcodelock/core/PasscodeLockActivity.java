@@ -189,16 +189,19 @@ public class PasscodeLockActivity extends BaseActivity {
     public void onBackPressed() {
         if (type == PasscodeLock.UNLOCK_PASSWORD) {
             // back to home screen
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_HOME);
-            this.startActivity(intent);
-            finish();
+            finishPasscodeLockActivity();
         } else {
             finish();
         }
     }
 
+    private void finishPasscodeLockActivity(){
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        this.startActivity(intent);
+        finish();
+    }
     protected void setupEditText(EditText editText) {
         editText.setInputType(InputType.TYPE_NULL);
         editText.setFilters(filters);
