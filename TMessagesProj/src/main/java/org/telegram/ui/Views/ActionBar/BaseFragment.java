@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
+import org.telegram.ui.ApplicationLoader;
 import org.telegramkr.messenger.R;
 
 public class BaseFragment {
@@ -204,10 +205,12 @@ public class BaseFragment {
         }
         try {
             if (visibleDialog != null) {
+                ApplicationLoader.isChangeOption = true;
                 visibleDialog.dismiss();
                 visibleDialog = null;
             }
         } catch (Exception e) {
+            ApplicationLoader.isChangeOption = true;
             FileLog.e("tmessages", e);
         }
         visibleDialog = builder.show();
@@ -215,6 +218,7 @@ public class BaseFragment {
         visibleDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
+                ApplicationLoader.isChangeOption = true;
                 visibleDialog = null;
                 onDialogDismiss();
             }

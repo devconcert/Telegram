@@ -202,6 +202,7 @@ public class SettingsNotificationsActivity extends BaseFragment implements Notif
                             tmpIntent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentSound);
                             startActivityForResult(tmpIntent, i);
                         } catch (Exception e) {
+                            ApplicationLoader.isChangeOption = true;
                             FileLog.e("tmessages", e);
                         }
                     } else if (i == resetNotificationsRow) {
@@ -453,42 +454,48 @@ public class SettingsNotificationsActivity extends BaseFragment implements Notif
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
-            Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
-            String name = null;
-            if (ringtone != null) {
-                Ringtone rng = RingtoneManager.getRingtone(getParentActivity(), ringtone);
-                if (rng != null) {
-                    if(ringtone.equals(Settings.System.DEFAULT_NOTIFICATION_URI)) {
-                        name = LocaleController.getString("Default", R.string.Default);
-                    } else {
-                        name = rng.getTitle(getParentActivity());
+            ApplicationLoader.isChangeOption = true;
+            try {
+                Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+                String name = null;
+                if (ringtone != null) {
+                    Ringtone rng = RingtoneManager.getRingtone(getParentActivity(), ringtone);
+                    if (rng != null) {
+                        if(ringtone.equals(Settings.System.DEFAULT_NOTIFICATION_URI)) {
+                            name = LocaleController.getString("Default", R.string.Default);
+                        } else {
+                            name = rng.getTitle(getParentActivity());
+                        }
+                        rng.stop();
                     }
-                    rng.stop();
                 }
-            }
 
-            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
+                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("Notifications", Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
 
-            if (requestCode == messageSoundRow) {
-                if (name != null && ringtone != null) {
-                    editor.putString("GlobalSound", name);
-                    editor.putString("GlobalSoundPath", ringtone.toString());
-                } else {
-                    editor.putString("GlobalSound", "NoSound");
-                    editor.putString("GlobalSoundPath", "NoSound");
+                if (requestCode == messageSoundRow) {
+                    if (name != null && ringtone != null) {
+                        editor.putString("GlobalSound", name);
+                        editor.putString("GlobalSoundPath", ringtone.toString());
+                    } else {
+                        editor.putString("GlobalSound", "NoSound");
+                        editor.putString("GlobalSoundPath", "NoSound");
+                    }
+                } else if (requestCode == groupSoundRow) {
+                    if (name != null && ringtone != null) {
+                        editor.putString("GroupSound", name);
+                        editor.putString("GroupSoundPath", ringtone.toString());
+                    } else {
+                        editor.putString("GroupSound", "NoSound");
+                        editor.putString("GroupSoundPath", "NoSound");
+                    }
                 }
-            } else if (requestCode == groupSoundRow) {
-                if (name != null && ringtone != null) {
-                    editor.putString("GroupSound", name);
-                    editor.putString("GroupSoundPath", ringtone.toString());
-                } else {
-                    editor.putString("GroupSound", "NoSound");
-                    editor.putString("GroupSoundPath", "NoSound");
-                }
+                editor.commit();
+                listView.invalidateViews();
+            } catch (Exception e){
+                ApplicationLoader.isChangeOption = true;
+                FileLog.e("tmessages", e);
             }
-            editor.commit();
-            listView.invalidateViews();
         }
     }
 

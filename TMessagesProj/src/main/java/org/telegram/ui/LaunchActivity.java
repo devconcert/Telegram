@@ -870,7 +870,9 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         ConnectionsManager.getInstance().setAppPaused(false, false);
         actionBarLayout.getActionBar().setBackOverlayVisible(currentConnectionState != 0);
 
-        if(ApplicationLoader.isPasscodeLockOn && ApplicationLoader.isPasscodeLockSuccess){
+        if(ApplicationLoader.isChangeOption){
+            ApplicationLoader.isChangeOption = false;
+        }else if(ApplicationLoader.isPasscodeLockOn && ApplicationLoader.isPasscodeLockSuccess){
             ApplicationLoader.isPasscodeLockOn = false;
             startPasscodeLockActivity();
         } else if(ApplicationLoader.isPasscodeChange) {
