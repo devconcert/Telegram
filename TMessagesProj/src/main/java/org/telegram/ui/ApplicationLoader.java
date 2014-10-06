@@ -68,6 +68,7 @@ public class ApplicationLoader extends Application {
     public static boolean isPasscodeLockSuccess = false;
     public static boolean isPasscodeLockOn = false;
     public static boolean isPasscodeChange = false;
+    public static boolean isChangeOption = false;
 
     public static void postInitApplication() {
         if (applicationInited) {
