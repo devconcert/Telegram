@@ -7,5 +7,6 @@ local.properties
 *.keystore
 gradle.properties
 .DS_Store
+*.apk
 
 TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
