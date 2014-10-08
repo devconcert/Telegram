@@ -24,6 +24,7 @@ import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.util.Base64;
 
+import org.telegram.android.ContactsController;
 import org.telegramkr.messenger.R;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.CrashManagerListener;
@@ -641,21 +642,15 @@ public class Utilities {
         return null;
     }
 
-    public static CharSequence generateSearchName(String name, String name2, String q) {
-        if (name == null && name2 == null) {
+    public static CharSequence generateSearchName(String first_name, String last_name, String q) {
+        if (first_name == null && last_name == null) {
             return "";
         }
-        int index;
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-        String wholeString = name;
-        if (wholeString == null || wholeString.length() == 0) {
-            wholeString = name2;
-        } else if (name2 != null && name2.length() != 0) {
-            wholeString += " " + name2;
-        }
-        wholeString = wholeString.trim();
-        String[] args = wholeString.split(" ");
 
+        String wholeString = ContactsController.getFirstNameOrLastNameByLanguage(first_name, last_name);
+
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        String[] args = wholeString.split(" ");
         for (String arg : args) {
             String str = arg;
             if (str != null) {
