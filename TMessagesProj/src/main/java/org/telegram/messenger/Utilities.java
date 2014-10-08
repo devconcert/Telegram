@@ -24,6 +24,7 @@ import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.util.Base64;
 
+import org.telegram.android.ContactsController;
 import org.telegramkr.messenger.R;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.CrashManagerListener;
@@ -641,46 +642,35 @@ public class Utilities {
         return null;
     }
 
-    public static CharSequence generateSearchName(String name, String name2, String q) {
-        if (name == null && name2 == null) {
+    public static CharSequence generateSearchName(String first_name, String last_name, String q) {
+        if (first_name == null && last_name == null) {
             return "";
         }
+
+        String wholeString = ContactsController.getFirstNameOrLastNameByLanguage(first_name, last_name);
+
         SpannableStringBuilder builder = new SpannableStringBuilder();
-        String wholeString = name;
-        if (wholeString == null || wholeString.length() == 0) {
-            wholeString = name2;
-        } else if (name2 != null && name2.length() != 0) {
-            wholeString += " " + name2;
-        }
-        wholeString = wholeString.trim();
-        String lower = " " + wholeString.toLowerCase();
-
-        int index = -1;
-        int lastIndex = 0;
-        while ((index = lower.indexOf(" " + q, lastIndex)) != -1) {
-            int idx = index - (index == 0 ? 0 : 1);
-            int end = q.length() + (index == 0 ? 0 : 1) + idx;
-
-            if (lastIndex != 0 && lastIndex != idx + 1) {
-                builder.append(wholeString.substring(lastIndex, idx));
-            } else if (lastIndex == 0 && idx != 0) {
-                builder.append(wholeString.substring(0, idx));
+        String[] args = wholeString.split(" ");
+        for (String arg : args) {
+            String str = arg;
+            if (str != null) {
+                String lower = str.toLowerCase();
+                if (lower.startsWith(q)) {
+                    if (builder.length() != 0) {
+                        builder.append(" ");
+                    }
+                    String query = str.substring(0, q.length());
+                    builder.append(Html.fromHtml("<font color=\"#357aa8\">" + query + "</font>"));
+                    str = str.substring(q.length());
+                    builder.append(str);
+                } else {
+                    if (builder.length() != 0) {
+                        builder.append(" ");
+                    }
+                    builder.append(str);
+                }
             }
-
-            String query = wholeString.substring(idx, end);
-            if (query.startsWith(" ")) {
-                builder.append(" ");
-            }
-            query.trim();
-            builder.append(Html.fromHtml("<font color=\"#357aa8\">" + query + "</font>"));
-
-            lastIndex = end;
         }
-
-        if (lastIndex != -1 && lastIndex != wholeString.length()) {
-            builder.append(wholeString.substring(lastIndex, wholeString.length()));
-        }
-
         return builder;
     }
 

@@ -24,6 +24,7 @@ import org.telegram.ui.Views.SectionedBaseAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class ContactsActivityAdapter extends SectionedBaseAdapter {
     private Context mContext;
@@ -150,13 +151,9 @@ public class ContactsActivityAdapter extends SectionedBaseAdapter {
                 divider.setVisibility(View.VISIBLE);
             }
         }
-        if (contact.first_name != null && contact.last_name != null) {
-            textView.setText(contact.first_name + " " + contact.last_name);
-        } else if (contact.first_name != null && contact.last_name == null) {
-            textView.setText(contact.first_name);
-        } else {
-            textView.setText(contact.last_name);
-        }
+
+        String name = ContactsController.getFirstNameOrLastNameByLanguage(contact.first_name, contact.last_name);
+        textView.setText(name);
         return convertView;
     }
 

@@ -554,7 +554,8 @@ public class ContactsController {
                                         FileLog.e("tmessages", "need delete contacts");
                                         for (HashMap.Entry<Integer, Contact> c : contactHashMap.entrySet()) {
                                             Contact contact = c.getValue();
-                                            FileLog.e("tmessages", "delete contact " + contact.first_name + " " + contact.last_name);
+                                            String name = getFirstNameOrLastNameByLanguage(contact.first_name, contact.last_name);
+                                            FileLog.e("tmessages", "delete contact " + name);
                                             for (String phone : contact.phones) {
                                                 FileLog.e("tmessages", phone);
                                             }
@@ -783,6 +784,18 @@ public class ContactsController {
         }
     }
 
+    public static String getFirstNameOrLastNameByLanguage(String first_name, String last_name) {
+        String name = "";
+        String _first_name = (first_name == null) ? "" : first_name.trim();
+        String _last_name = (last_name == null) ? "" : last_name.trim();
+        if (LocaleController.getCurrentLanguageCode().equals("ko")) {
+            name = (_last_name.length() == 0) ? _first_name : _last_name + " " + _first_name;
+        } else {
+            name = _first_name + " " + _last_name;
+        }
+        return name;
+    }
+
     public void processLoadedContacts(final ArrayList<TLRPC.TL_contact> contactsArr, final ArrayList<TLRPC.User> usersArr, final int from) {
         //from: 0 - from server, 1 - from db, 2 - from imported contacts
         AndroidUtilities.RunOnUIThread(new Runnable() {
@@ -808,9 +821,9 @@ public class ContactsController {
                     if (user != null) {
                         usersDict.put(user.id, user);
 
-//                        if (BuildVars.DEBUG_VERSION) {
-//                            FileLog.e("tmessages", "loaded user contact " + user.first_name + " " + user.last_name + " " + user.phone);
-//                        }
+                        if (BuildVars.DEBUG_VERSION) {
+                            FileLog.e("tmessages", "loaded user contact " + getFirstNameOrLastNameByLanguage(user.first_name, user.last_name) + " " + user.phone);
+                        }
                     }
                 }
 
@@ -861,14 +874,9 @@ public class ContactsController {
                             public int compare(TLRPC.TL_contact tl_contact, TLRPC.TL_contact tl_contact2) {
                                 TLRPC.User user1 = usersDict.get(tl_contact.user_id);
                                 TLRPC.User user2 = usersDict.get(tl_contact2.user_id);
-                                String name1 = user1.first_name;
-                                if (name1 == null || name1.length() == 0) {
-                                    name1 = user1.last_name;
-                                }
-                                String name2 = user2.first_name;
-                                if (name2 == null || name2.length() == 0) {
-                                    name2 = user2.last_name;
-                                }
+
+                                String name1 = getFirstNameOrLastNameByLanguage(user1.first_name, user1.last_name);
+                                String name2 = getFirstNameOrLastNameByLanguage(user2.first_name, user2.last_name);
                                 return name1.compareTo(name2);
                             }
                         });
@@ -894,10 +902,8 @@ public class ContactsController {
                                 contactsByPhonesDict.put(user.phone, value);
                             }
 
-                            String key = user.first_name;
-                            if (key == null || key.length() == 0) {
-                                key = user.last_name;
-                            }
+                            String key = getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
+
                             if (key.length() == 0) {
                                 key = "#";
                             } else {
