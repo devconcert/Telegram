@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -119,6 +120,17 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         getWindow().setBackgroundDrawableResource(R.drawable.transparent);
 
         super.onCreate(savedInstanceState);
+
+        try {
+            Window w = getWindow();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+                w.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+            } else {
+                w.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            }
+        } catch(Exception e){
+            FileLog.e("tmessages", e);
+        }
 
         actionBarLayout = new ActionBarLayout(this);
         if (AndroidUtilities.isTablet()) {
