@@ -12,4 +12,8 @@
     <color name="gray">#FFCCCCCC</color>
     <color name="black">#FF000000</color>
     <color name="light_blue">#FF78c8e6</color>
+
+    <!-- Floating Button -->
+    <color name="primary">#009688</color>
+    <color name="primary_pressed">#26a69a</color>
 </resources>

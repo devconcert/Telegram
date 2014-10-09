@@ -1,3 +1,7 @@
+/*
+ See LICENSE
+*/
+
 package org.telegramkr.passcodelock.core;
 
 import org.telegram.android.LocaleController;

@@ -1013,7 +1013,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
 
     @Override
     public void onBackPressed() {
-        ApplicationLoader.isChangeOption = true;
+        ApplicationLoader.isChangeOption = false;
         if (PhotoViewer.getInstance().isVisible()) {
             PhotoViewer.getInstance().closePhoto(true);
         } else {

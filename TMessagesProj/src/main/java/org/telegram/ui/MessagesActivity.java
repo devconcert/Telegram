@@ -23,6 +23,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.telegramkr.messenger.R;
+import org.telegramkr.ui.FloatingActionButton;
+
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
 import org.telegram.messenger.TLObject;
@@ -32,7 +35,6 @@ import org.telegram.messenger.FileLog;
 import org.telegram.android.MessagesController;
 import org.telegram.android.MessagesStorage;
 import org.telegram.android.NotificationCenter;
-import org.telegramkr.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
@@ -49,6 +51,7 @@ import java.util.TimerTask;
 
 public class MessagesActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private ListView messagesListView;
+    private FloatingActionButton floatingActionButton;
     private MessagesAdapter messagesListViewAdapter;
     private TextView searchEmptyView;
     private View progressView;
@@ -130,6 +133,7 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
     @Override
     public View createView(LayoutInflater inflater, ViewGroup container) {
         if (fragmentView == null) {
+
             ActionBarMenu menu = actionBarLayer.createMenu();
             menu.addItem(0, R.drawable.ic_ab_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
                 @Override
@@ -182,7 +186,9 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                 menu.addItem(messages_list_menu_new_messages, R.drawable.ic_ab_compose);
                 ActionBarMenuItem item = menu.addItem(0, R.drawable.ic_ab_other);
                 item.addSubItem(messages_list_menu_new_chat, LocaleController.getString("NewGroup", R.string.NewGroup), 0);
-                item.addSubItem(messages_list_menu_new_secret_chat, LocaleController.getString("NewSecretChat", R.string.NewSecretChat), 0);
+//                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//                    item.addSubItem(messages_list_menu_new_secret_chat, LocaleController.getString("NewSecretChat", R.string.NewSecretChat), 0);
+//                }
                 item.addSubItem(messages_list_menu_new_broadcast, LocaleController.getString("NewBroadcastList", R.string.NewBroadcastList), 0);
                 item.addSubItem(messages_list_menu_contacts, LocaleController.getString("Contacts", R.string.Contacts), 0);
                 item.addSubItem(messages_list_menu_invite_friends, LocaleController.getString("InviteFriends", R.string.InviteFriends), 0);
@@ -203,14 +209,14 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                         args.putBoolean("destroyAfterSelect", true);
                         args.putBoolean("usersAsSections", true);
                         presentFragment(new ContactsActivity(args));
-                    } else if (id == messages_list_menu_new_secret_chat) {
+                    }/* else if (id == messages_list_menu_new_secret_chat) {
                         Bundle args = new Bundle();
                         args.putBoolean("onlyUsers", true);
                         args.putBoolean("destroyAfterSelect", true);
                         args.putBoolean("usersAsSections", true);
                         args.putBoolean("createSecretChat", true);
                         presentFragment(new ContactsActivity(args));
-                    } else if (id == messages_list_menu_new_chat) {
+                    }*/ else if (id == messages_list_menu_new_chat) {
                         presentFragment(new GroupCreateActivity());
                     } else if (id == -1) {
                         if (onlySelect) {
@@ -239,10 +245,24 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
             searchWas = false;
 
             fragmentView = inflater.inflate(R.layout.messages_list, container, false);
-
             messagesListViewAdapter = new MessagesAdapter(getParentActivity());
-
             messagesListView = (ListView)fragmentView.findViewById(R.id.messages_list_view);
+
+            floatingActionButton = (FloatingActionButton)fragmentView.findViewById(R.id.button_floating_action);
+            floatingActionButton.setVisibility(View.VISIBLE);
+            floatingActionButton.attachToListView(messagesListView);
+            floatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Bundle args = new Bundle();
+                    args.putBoolean("onlyUsers", true);
+                    args.putBoolean("destroyAfterSelect", true);
+                    args.putBoolean("usersAsSections", true);
+                    args.putBoolean("createSecretChat", true);
+                    presentFragment(new ContactsActivity(args));
+                }
+            });
+
             messagesListView.setAdapter(messagesListViewAdapter);
             if (delegate == null && AndroidUtilities.isTablet()) {
                 messagesListView.setDivider(inflater.getContext().getResources().getDrawable(R.drawable.messages_list_divider2));
@@ -460,6 +480,21 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                             MessagesController.getInstance().loadDialogs(MessagesController.getInstance().dialogs.size(), MessagesController.getInstance().dialogsServerOnly.size(), 100, true);
                         }
                     }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                        int newScrollY = floatingActionButton.getListViewScrollY();
+                        if (newScrollY == floatingActionButton.mScrollY) {
+                            return;
+                        }
+                        if (newScrollY > floatingActionButton.mScrollY) {
+                            // Scrolling up
+                            floatingActionButton.hide();
+                        } else if (newScrollY < floatingActionButton.mScrollY) {
+                            // Scrolling down
+                            floatingActionButton.show();
+                        }
+                        floatingActionButton.mScrollY = newScrollY;
+                    }
+
                 }
             });
         } else {

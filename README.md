@@ -25,3 +25,4 @@ PasscodeLock : https://github.com/coderkiss/AppLock
 
 LOCK-ICON: http://www.iconarchive.com/show/mono-general-4-icons-by-custom-icon-design/padlock-lock-icon.html 
 
+FloatingActionButton : https://github.com/makovkastar/FloatingActionButton
