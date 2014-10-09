@@ -1,3 +1,7 @@
+/*
+ See LICENSE
+*/
+
 package org.telegramkr.passcodelock.core;
 
 import java.util.HashSet;
