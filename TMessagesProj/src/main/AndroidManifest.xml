@@ -47,6 +47,7 @@
         android:theme="@style/Theme.TMessages.Start"
         android:name="org.telegram.ui.ApplicationLoader"
         android:hardwareAccelerated="true"
+        android:persistent="true"
         android:largeHeap="true">
 
         <activity

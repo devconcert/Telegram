@@ -81,6 +81,8 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
     @Override
     public void onFragmentDestroy() {
         super.onFragmentDestroy();
+
+        ApplicationLoader.isChangeOption = false;
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.updateInterfaces);
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.closeChats);
         if (mapView != null) {
@@ -103,6 +105,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                 @Override
                 public void onItemClick(int id) {
                     if (id == -1) {
+                        ApplicationLoader.isChangeOption = false;
                         finishFragment();
                     } else if (id == map_list_menu_map) {
                         if (googleMap != null) {
@@ -186,6 +189,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                     sendButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+                            ApplicationLoader.isChangeOption = false;
                             if (delegate != null) {
                                 delegate.didSelectLocation(userLocation.getLatitude(), userLocation.getLongitude());
                             }
@@ -216,6 +220,8 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                     bottomView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+
+                            ApplicationLoader.isChangeOption = false;
                             if (userLocation != null) {
                                 LatLng latLng = new LatLng(userLocation.getLatitude(), userLocation.getLongitude());
                                 CameraUpdate position = CameraUpdateFactory.newLatLngZoom(latLng, googleMap.getMaxZoomLevel() - 8);
