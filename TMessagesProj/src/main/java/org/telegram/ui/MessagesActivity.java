@@ -357,6 +357,7 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
             messagesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    //ApplicationLoader.isChangeOption = true;
                     if (onlySelect || searching && searchWas || getParentActivity() == null) {
                         return false;
                     }
@@ -387,12 +388,14 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                                 if (which == 0) {
                                     MessagesController.getInstance().deleteDialog(selectedDialog, 0, true);
                                 } else if (which == 1) {
+                                    //ApplicationLoader.isChangeOption = true;
                                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                                     builder.setMessage(LocaleController.getString("AreYouSureDeleteAndExit", R.string.AreYouSureDeleteAndExit));
                                     builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
                                     builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
+                                            ApplicationLoader.isChangeOption = false;
                                             MessagesController.getInstance().deleteUserFromChat((int) -selectedDialog, MessagesController.getInstance().getUser(UserConfig.getClientUserId()), null);
                                             MessagesController.getInstance().deleteDialog(selectedDialog, 0, false);
                                             if (AndroidUtilities.isTablet()) {
@@ -400,7 +403,12 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                                             }
                                         }
                                     });
-                                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            ApplicationLoader.isChangeOption = false;
+                                        }
+                                    });
                                     showAlertDialog(builder);
                                 }
                             }
@@ -418,19 +426,30 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                                     builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
+                                            ApplicationLoader.isChangeOption = true;
                                             MessagesController.getInstance().deleteDialog(selectedDialog, 0, false);
                                             if (AndroidUtilities.isTablet()) {
                                                 NotificationCenter.getInstance().postNotificationName(NotificationCenter.closeChats, selectedDialog);
                                             }
                                         }
                                     });
-                                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            ApplicationLoader.isChangeOption = false;
+                                        }
+                                    });
                                     showAlertDialog(builder);
                                 }
                             }
                         });
                     }
-                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+                    builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            ApplicationLoader.isChangeOption = false;
+                        }
+                    });
                     showAlertDialog(builder);
                     return true;
                 }
