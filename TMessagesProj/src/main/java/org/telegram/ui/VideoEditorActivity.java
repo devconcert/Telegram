@@ -159,6 +159,7 @@ public class VideoEditorActivity extends BaseFragment implements TextureView.Sur
 
     @Override
     public boolean onFragmentCreate() {
+        ApplicationLoader.isChangeOption = true;
         if (videoPath == null || !processOpenVideo()) {
             return false;
         }
@@ -194,6 +195,7 @@ public class VideoEditorActivity extends BaseFragment implements TextureView.Sur
 
     @Override
     public void onFragmentDestroy() {
+        ApplicationLoader.isChangeOption = false;
         if (videoTimelineView != null) {
             videoTimelineView.destroy();
         }

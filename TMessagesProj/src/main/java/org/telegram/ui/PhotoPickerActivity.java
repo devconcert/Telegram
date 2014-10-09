@@ -107,8 +107,10 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                         }
                     } else if (id == 1) {
                         if (delegate != null) {
+                            ApplicationLoader.isChangeOption = true;
                             finishFragment(false);
                             delegate.startPhotoSelectActivity();
+                            ApplicationLoader.isChangeOption = false;
                         }
                     }
                 }

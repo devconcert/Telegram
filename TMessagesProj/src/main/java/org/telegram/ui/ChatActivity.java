@@ -742,6 +742,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapter, View view, int position, long id) {
+                    ApplicationLoader.isChangeOption = false;
                     if (!actionBarLayer.isActionModeShowed()) {
                         createMenu(view, false);
                     }
@@ -852,8 +853,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             chatListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    ApplicationLoader.isChangeOption = true;
                     if (actionBarLayer.isActionModeShowed()) {
                         processRowSelect(view);
+                        ApplicationLoader.isChangeOption = false;
                         return;
                     }
                     createMenu(view, true);
@@ -1331,6 +1334,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (resultCode == Activity.RESULT_OK) {
             ApplicationLoader.isChangeOption = false;
             if (requestCode == 0) {
+                ApplicationLoader.isChangeOption = true;
                 Utilities.addMediaToGallery(currentPicturePath);
                 processSendingPhoto(currentPicturePath, null);
                 currentPicturePath = null;
@@ -1339,8 +1343,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     showAttachmentError();
                     return;
                 }
+                ApplicationLoader.isChangeOption = true;
                 processSendingPhoto(null, data.getData());
+                //ApplicationLoader.isChangeOption = false;
             } else if (requestCode == 2) {
+                ApplicationLoader.isChangeOption = true;
                 String videoPath = null;
                 if (data != null) {
                     Uri uri = data.getData();
@@ -1358,6 +1365,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                         Utilities.addMediaToGallery(currentPicturePath);
                         currentPicturePath = null;
+                        //ApplicationLoader.isChangeOption = false;
                     } else {
                         try {
                             videoPath = Utilities.getPath(uri);
@@ -1377,6 +1385,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (paused) {
                         startVideoEdit = videoPath;
                     } else {
+                        //ApplicationLoader.isChangeOption = true;
                         Bundle args = new Bundle();
                         args.putString("videoPath", videoPath);
                         VideoEditorActivity fragment = new VideoEditorActivity(args);
@@ -2804,6 +2813,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        ApplicationLoader.isChangeOption = false;
                         if (selectedObject == null) {
                             return;
                         }
@@ -3425,6 +3435,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     if (f == null || f != null && !f.exists()) {
                                         f = FileLoader.getPathToMessage(message.messageOwner);
                                     }
+                                    ApplicationLoader.isChangeOption = true;
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
                                     intent.setDataAndType(Uri.fromFile(f), "video/mp4");
                                     getParentActivity().startActivity(intent);

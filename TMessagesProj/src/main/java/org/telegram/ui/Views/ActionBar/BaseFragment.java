@@ -218,7 +218,7 @@ public class BaseFragment {
         visibleDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                ApplicationLoader.isChangeOption = true;
+                ApplicationLoader.isChangeOption = false;
                 visibleDialog = null;
                 onDialogDismiss();
             }
