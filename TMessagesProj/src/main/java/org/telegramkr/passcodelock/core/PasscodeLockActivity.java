@@ -20,7 +20,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class PasscodeLockActivity extends BaseActivity {
     public static final String TAG = PasscodeLockActivity.class.getName();
@@ -289,10 +288,7 @@ public class PasscodeLockActivity extends BaseActivity {
     };
 
     protected void onPasscodeError() {
-        Toast toast = Toast.makeText(this, getString(R.string.PasscodeLock_wrong),
-                Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 30);
-        toast.show();
+        tvMessage.setText(R.string.PasscodeLock_wrong);
 
         Thread thread = new Thread() {
             public void run() {
