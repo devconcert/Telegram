@@ -152,6 +152,9 @@ update date : 2014-10-03
     <string name="NotificationUnrecognizedDevice">%1$s님,\n%2$s에 새 기기에서 회원님의 계정에 로그인하였습니다.\n\n기기: %3$s\n위치: %4$s\n\n본인의 접속이 아니라면 \'설정\'으로 가서 \'다른 모든 세션 종료\'를 실행하세요.\n\n감사합니다.\n텔레그램 팀 드림</string>
     <string name="NotificationContactNewPhoto">%1$s님이 프로필 사진을 변경했습니다</string>
     <string name="Reply">답장</string>
+    <string name="ReplyToGroup">%1$s 그룹에 답장하기</string>
+    <string name="ReplyToUser">%1$s님에게 답장하기</string>
+    <string name="NotificationMessagesPeopleDisplayOrder">%2$s %1$s</string>
     <!--contacts view-->
     <string name="SelectContact">새 대화상대 선택(일반대화)</string>
     <string name="SelectSecretContact">새 대화상대 선택(비밀대화)</string>
@@ -378,6 +381,8 @@ update date : 2014-10-03
     <string name="AreYouSureDeleteContact">대화상대를 삭제할까요?</string>
     <string name="AreYouSureSecretChat">비밀대화를 시작할까요?</string>
     <string name="ForwardFromMyName">내 이름으로 전달</string>
+    <string name="SendMessagesToGroup">Send messages to %1$s?</string>
+    <string name="ForwardMessagesToGroup">Forward messages to %1$s?</string>
     <!--Intro view-->
     <string name="Page1Title">텔레그램</string>
     <string name="Page2Title">눈부신 속도</string>
@@ -395,6 +400,12 @@ update date : 2014-10-03
     <string name="Page7Message"><![CDATA[<b>텔레그램</b>]]>은 메시지를 강력하게 암호화하며<![CDATA[<br/>]]>자동으로 삭제되게 할 수 있습니다.</string>
     <string name="StartMessaging">시작하기</string>
     <!--plurals-->
+    <string name="Online_zero">온라인 %1$d명</string>
+    <string name="Online_one">온라인 %1$d명</string>
+    <string name="Online_two">온라인 %1$d명</string>
+    <string name="Online_few">온라인 %1$d명</string>
+    <string name="Online_many">온라인 %1$d명</string>
+    <string name="Online_other">온라인 %1$d명</string>
     <string name="Members_zero">대화상대 없음</string>
     <string name="Members_one">대화상대 %1$d명</string>
     <string name="Members_two">대화상대 %1$d명</string>
