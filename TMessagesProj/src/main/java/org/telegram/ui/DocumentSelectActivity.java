@@ -99,8 +99,16 @@ public class DocumentSelectActivity extends BaseFragment {
     };
 
     @Override
+    public boolean onFragmentCreate() {
+        super.onFragmentCreate();
+        //ApplicationLoader.isChangeOption = true;
+        return true;
+    }
+
+    @Override
     public void onFragmentDestroy() {
         try {
+            ApplicationLoader.isChangeOption = false;
             if (receiverRegistered) {
                 getParentActivity().unregisterReceiver(receiver);
             }
@@ -157,6 +165,7 @@ public class DocumentSelectActivity extends BaseFragment {
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    ApplicationLoader.isChangeOption = false;
                     ListItem item = items.get(i);
                     File file = item.file;
                     if (file == null) {
@@ -221,6 +230,7 @@ public class DocumentSelectActivity extends BaseFragment {
 
     @Override
     public boolean onBackPressed() {
+        ApplicationLoader.isChangeOption = false;
         if (history.size() > 0) {
             HistoryEntry he = history.remove(history.size() - 1);
             actionBarLayer.setTitle(he.title);

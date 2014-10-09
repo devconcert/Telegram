@@ -420,6 +420,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         updateVisibleRows();
                     } else if (id == attach_photo) {
                         try {
+                            ApplicationLoader.isChangeOption = true;
                             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             File image = Utilities.generatePicturePath();
                             if (image != null) {
@@ -431,11 +432,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             FileLog.e("tmessages", e);
                         }
                     } else if (id == attach_gallery) {
+                        //ApplicationLoader.isChangeOption = true;
                         PhotoPickerActivity fragment = new PhotoPickerActivity();
                         fragment.setDelegate(ChatActivity.this);
                         presentFragment(fragment);
                     } else if (id == attach_video) {
                         try {
+                            ApplicationLoader.isChangeOption = true;
                             Intent pickIntent = new Intent();
                             pickIntent.setType("video/*");
                             pickIntent.setAction(Intent.ACTION_GET_CONTENT);
@@ -1326,6 +1329,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
+            ApplicationLoader.isChangeOption = false;
             if (requestCode == 0) {
                 Utilities.addMediaToGallery(currentPicturePath);
                 processSendingPhoto(currentPicturePath, null);
@@ -2451,6 +2455,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         topPanel.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                ApplicationLoader.isChangeOption = true;
                                 Bundle args = new Bundle();
                                 args.putInt("user_id", currentUser.id);
                                 presentFragment(new ContactAddActivity(args));
@@ -2475,6 +2480,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
+                                        ApplicationLoader.isChangeOption = false;
+
                                         MessagesController.getInstance().hidenAddToContacts.put(currentUser.id, currentUser);
                                         topPanel.setVisibility(View.GONE);
                                         SendMessagesHelper.getInstance().sendMessage(UserConfig.getCurrentUser(), dialog_id);

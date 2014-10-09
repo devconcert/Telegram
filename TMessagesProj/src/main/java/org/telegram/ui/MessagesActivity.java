@@ -222,6 +222,7 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                         presentFragment(new GroupCreateActivity(args));
                     } else if (id == messages_list_menu_invite_friends) {
                         try {
+                            ApplicationLoader.isChangeOption = true;
                             Intent intent = new Intent(Intent.ACTION_SEND);
                             intent.setType("text/plain");
                             intent.putExtra(Intent.EXTRA_TEXT, LocaleController.getString("InviteText", R.string.InviteText));

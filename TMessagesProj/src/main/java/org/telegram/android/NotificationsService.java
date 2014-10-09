@@ -16,7 +16,7 @@ import android.os.IBinder;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.ApplicationLoader;
 
-public class NotificationsService extends Service {
+public class NotificationsService extends Service{
 
     @Override
     public void onCreate() {

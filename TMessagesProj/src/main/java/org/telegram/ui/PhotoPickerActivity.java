@@ -75,6 +75,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
 
     @Override
     public void onFragmentDestroy() {
+        ApplicationLoader.isChangeOption = false;
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.albumsDidLoaded);
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.closeChats);
         super.onFragmentDestroy();
@@ -127,6 +128,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
             cancelButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    ApplicationLoader.isChangeOption = false;
                     finishFragment();
                 }
             });
@@ -134,6 +136,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
             doneButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    ApplicationLoader.isChangeOption = false;
                     sendSelectedPhotos();
                 }
             });
@@ -223,6 +226,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
 
     @Override
     public boolean onBackPressed() {
+        ApplicationLoader.isChangeOption = false;
         if (selectedAlbum != null) {
             selectedAlbum = null;
             actionBarLayer.setTitle(LocaleController.getString("Gallery", R.string.Gallery));

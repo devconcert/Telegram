@@ -835,6 +835,14 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         }
     }
 
+//    @Override
+//    protected void onUserLeaveHint() {
+//        ApplicationLoader.isHomeKeyPress = true;
+//
+//        // TODO Auto-generated method stub
+//        super.onUserLeaveHint();
+//    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -870,21 +878,28 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         ConnectionsManager.getInstance().setAppPaused(false, false);
         actionBarLayout.getActionBar().setBackOverlayVisible(currentConnectionState != 0);
 
+//        if(ApplicationLoader.isHomeKeyPress){
+//            ApplicationLoader.isHomeKeyPress = false;
+//            checkAndStartPasscodeLockActivity();
+//        } else
         if(ApplicationLoader.isChangeOption){
             ApplicationLoader.isChangeOption = false;
-        }else if(ApplicationLoader.isPasscodeLockOn && ApplicationLoader.isPasscodeLockSuccess){
+        } else if(ApplicationLoader.isPasscodeLockOn && ApplicationLoader.isPasscodeLockSuccess){
             ApplicationLoader.isPasscodeLockOn = false;
             startPasscodeLockActivity();
         } else if(ApplicationLoader.isPasscodeChange) {
             ApplicationLoader.isPasscodeChange = false;
         } else if(ApplicationLoader.isPasscodeLockSuccess == false) {
-            if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
-                ApplicationLoader.isPasscodeLockOn = false;
-                startPasscodeLockActivity();
-            }
+            checkAndStartPasscodeLockActivity();
         }
     }
 
+    private void checkAndStartPasscodeLockActivity() {
+        if (LockManager.getInstance().getAppLock().isPasscodeSet()) {
+            ApplicationLoader.isPasscodeLockOn = false;
+            startPasscodeLockActivity();
+        }
+    }
     public void startPasscodeLockActivity() {
         try {
             Intent intent = new Intent(this, PasscodeLockActivity.class);
