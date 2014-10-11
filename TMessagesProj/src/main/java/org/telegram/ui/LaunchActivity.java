@@ -117,17 +117,21 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setTheme(R.style.Theme_TMessages);
-        getWindow().setBackgroundDrawableResource(R.drawable.transparent);
-
-        super.onCreate(savedInstanceState);
 
         try {
+            getWindow().setBackgroundDrawableResource(R.drawable.transparent);
+            super.onCreate(savedInstanceState);
+
+/*
+            // Privacy ScreenCapture .
+            // See: https://github.com/devconcert/Telegram/issues/27
             Window w = getWindow();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
                 w.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
             } else {
                 w.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
             }
+*/
         } catch(Exception e){
             FileLog.e("tmessages", e);
         }
