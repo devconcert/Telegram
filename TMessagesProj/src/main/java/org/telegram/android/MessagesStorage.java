@@ -1234,26 +1234,30 @@ public class MessagesStorage {
                         cursor = database.queryFinalized("SELECT q.data, q.name, q.user, q.g, q.authkey, q.ttl, u.data, u.status FROM enc_chats as q INNER JOIN dialogs as d ON (q.uid << 32) = d.did INNER JOIN users as u ON q.user = u.uid");
                         while (cursor.next()) {
                             String name = cursor.stringValue(1);
-                            if (name.startsWith(q) || name.contains(" " + q)) {
-                                ByteBufferDesc data = buffersStorage.getFreeBuffer(cursor.byteArrayLength(0));
-                                ByteBufferDesc data2 = buffersStorage.getFreeBuffer(cursor.byteArrayLength(6));
-                                if (data != null && cursor.byteBufferValue(0, data.buffer) != 0 && cursor.byteBufferValue(6, data2.buffer) != 0) {
-                                    TLRPC.EncryptedChat chat = (TLRPC.EncryptedChat) TLClassStore.Instance().TLdeserialize(data, data.readInt32());
-                                    chat.user_id = cursor.intValue(2);
-                                    chat.a_or_b = cursor.byteArrayValue(3);
-                                    chat.auth_key = cursor.byteArrayValue(4);
-                                    chat.ttl = cursor.intValue(5);
+                            String[] args = name.split(" ");
+                            for (String arg : args) {
+                                if (arg.startsWith(q)) {
+                                    ByteBufferDesc data = buffersStorage.getFreeBuffer(cursor.byteArrayLength(0));
+                                    ByteBufferDesc data2 = buffersStorage.getFreeBuffer(cursor.byteArrayLength(6));
+                                    if (data != null && cursor.byteBufferValue(0, data.buffer) != 0 && cursor.byteBufferValue(6, data2.buffer) != 0) {
+                                        TLRPC.EncryptedChat chat = (TLRPC.EncryptedChat) TLClassStore.Instance().TLdeserialize(data, data.readInt32());
+                                        chat.user_id = cursor.intValue(2);
+                                        chat.a_or_b = cursor.byteArrayValue(3);
+                                        chat.auth_key = cursor.byteArrayValue(4);
+                                        chat.ttl = cursor.intValue(5);
 
-                                    TLRPC.User user = (TLRPC.User)TLClassStore.Instance().TLdeserialize(data2, data2.readInt32());
-                                    if (user.status != null) {
-                                        user.status.expires = cursor.intValue(7);
+                                        TLRPC.User user = (TLRPC.User)TLClassStore.Instance().TLdeserialize(data2, data2.readInt32());
+                                        if (user.status != null) {
+                                            user.status.expires = cursor.intValue(7);
+                                        }
+                                        resultArrayNames.add(Html.fromHtml("<font color=\"#00a60e\">" + ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name) + "</font>"));
+                                        resultArray.add(chat);
+                                        encUsers.add(user);
                                     }
-                                    resultArrayNames.add(Html.fromHtml("<font color=\"#00a60e\">" + ContactsController.formatName(user.first_name, user.last_name) + "</font>"));
-                                    resultArray.add(chat);
-                                    encUsers.add(user);
+                                    buffersStorage.reuseFreeBuffer(data);
+                                    buffersStorage.reuseFreeBuffer(data2);
+                                    break;
                                 }
-                                buffersStorage.reuseFreeBuffer(data);
-                                buffersStorage.reuseFreeBuffer(data2);
                             }
                         }
                         cursor.dispose();

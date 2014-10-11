@@ -243,7 +243,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                             photo = user.photo.photo_small;
                         }
                         avatarImageView.setImage(photo, "50_50", AndroidUtilities.getUserAvatarForId(user.id));
-                        nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                        nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name));
                     }
                     userLocation = new Location("network");
                     userLocation.setLatitude(messageObject.messageOwner.media.geo.lat);
@@ -292,7 +292,7 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                     photo = user.photo.photo_small;
                 }
                 avatarImageView.setImage(photo, null, AndroidUtilities.getUserAvatarForId(user.id));
-                nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name));
             }
         }
     }

@@ -80,6 +80,7 @@
     <string name="GotAQuestion">Got a question\nabout Telegram?</string>
     <string name="ChatTakePhoto">Take photo</string>
     <string name="ChatGallery">Gallery</string>
+    <string name="ChatEmoticon">Emoticon(Rage faces..)</string>
     <string name="ChatLocation">Location</string>
     <string name="ChatVideo">Video</string>
     <string name="ChatDocument">Document</string>
@@ -352,6 +353,9 @@
     <string name="FromYou">You</string>
     <string name="ActionTakeScreenshootYou">You took a screenshot!</string>
     <string name="ActionTakeScreenshoot">un1 took a screenshot!</string>
+    <string name="EMOTICON_DOWN_TITLE">Emoticon Pack Down</string>
+    <string name="EMOTICON_DOWN_TITLE_DETAIL">Emoticon Pack is not install.\nDo you want download from Google Market?</string>
+
     <!--Alert messages-->
     <string name="InvalidPhoneNumber">Invalid phone number</string>
     <string name="CodeExpired">Code expired, please login again</string>

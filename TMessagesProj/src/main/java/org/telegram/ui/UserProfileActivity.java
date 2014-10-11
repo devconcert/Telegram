@@ -541,7 +541,7 @@ public class UserProfileActivity extends BaseFragment implements NotificationCen
                 Typeface typeface = AndroidUtilities.getTypeface("fonts/rmedium.ttf");
                 textView.setTypeface(typeface);
 
-                textView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                textView.setText(ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name));
                 onlineText.setText(LocaleController.formatUserStatus(user));
 
                 TLRPC.FileLocation photo = null;
