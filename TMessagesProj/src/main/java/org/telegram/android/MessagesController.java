@@ -1173,7 +1173,7 @@ public class MessagesController implements NotificationCenter.NotificationCenter
                         if (label.length() != 0) {
                             label += ", ";
                         }
-                        label += ContactsController.formatName(user.first_name, user.last_name);
+                        label += ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                         count++;
                     }
                     if (count == 2) {

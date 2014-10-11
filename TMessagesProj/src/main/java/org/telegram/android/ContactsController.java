@@ -784,18 +784,6 @@ public class ContactsController {
         }
     }
 
-    public static String getFirstNameOrLastNameByLanguage(String first_name, String last_name) {
-        String name = "";
-        String _first_name = (first_name == null) ? "" : first_name.trim();
-        String _last_name = (last_name == null) ? "" : last_name.trim();
-        if (LocaleController.getCurrentLanguageCode().equals("ko")) {
-            name = (_last_name.length() == 0) ? _first_name : _last_name + " " + _first_name;
-        } else {
-            name = _first_name + " " + _last_name;
-        }
-        return name;
-    }
-
     public void processLoadedContacts(final ArrayList<TLRPC.TL_contact> contactsArr, final ArrayList<TLRPC.User> usersArr, final int from) {
         //from: 0 - from server, 1 - from db, 2 - from imported contacts
         AndroidUtilities.RunOnUIThread(new Runnable() {
@@ -1472,7 +1460,7 @@ public class ContactsController {
                     MessagesStorage.getInstance().putContacts(arrayList, false);
 
                     if (u.phone != null && u.phone.length() > 0) {
-                        String name = formatName(u.first_name, u.last_name);
+                        String name = getFirstNameOrLastNameByLanguage(u.first_name, u.last_name);
                         MessagesStorage.getInstance().applyPhoneBookUpdates(u.phone, "");
                         Contact contact = contactsBookSPhones.get(u.phone);
                         if (contact != null) {
@@ -1536,7 +1524,7 @@ public class ContactsController {
 
                 for (TLRPC.User user : users) {
                     if (user.phone != null && user.phone.length() > 0) {
-                        String name = ContactsController.formatName(user.first_name, user.last_name);
+                        String name = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                         MessagesStorage.getInstance().applyPhoneBookUpdates(user.phone, "");
                         Contact contact = contactsBookSPhones.get(user.phone);
                         if (contact != null) {
@@ -1571,23 +1559,20 @@ public class ContactsController {
         }, true, RPCRequest.RPCRequestClassGeneric);
     }
 
-    public static String formatName(String firstName, String lastName) {
-        String result = null;
-        if (LocaleController.nameDisplayOrder == 1) {
-            result = firstName;
-            if (result == null || result.length() == 0) {
-                result = lastName;
-            } else if (result.length() != 0 && lastName != null && lastName.length() != 0) {
-                result += " " + lastName;
-            }
+
+    public static String getFirstNameOrLastNameByLanguage(String first_name, String last_name) {
+        String name = "";
+        String _first_name = (first_name == null) ? "" : first_name.trim();
+        String _last_name = (last_name == null) ? "" : last_name.trim();
+        if (LocaleController.getCurrentLanguageCode().equals("ko")) {
+            name = (_last_name.length() == 0) ? _first_name : _last_name + " " + _first_name;
         } else {
-            result = lastName;
-            if (result == null || result.length() == 0) {
-                result = firstName;
-            } else if (result.length() != 0 && firstName != null && firstName.length() != 0) {
-                result += " " + firstName;
-            }
+            name = _first_name + " " + _last_name;
         }
-        return result.trim();
+        return name;
     }
+
+//    public static String formatName(String firstName, String lastName) {
+//        return getFirstNameOrLastNameByLanguage(firstName, lastName);
+//    }
 }

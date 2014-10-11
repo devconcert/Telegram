@@ -831,7 +831,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     user = UserConfig.getCurrentUser();
                 }
                 if (user != null) {
-                    textView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                    textView.setText(ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name));
                     BackupImageView avatarImage = (BackupImageView)view.findViewById(R.id.settings_avatar_image);
                     avatarImage.processDetach = false;
                     TLRPC.FileLocation photo = null;

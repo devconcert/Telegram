@@ -343,7 +343,7 @@ public class ChatOrUserCell extends BaseCell {
                 if (chat != null) {
                     nameString2 = chat.title;
                 } else if (user != null) {
-                    nameString2 = ContactsController.formatName(user.first_name, user.last_name);
+                    nameString2 = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                 }
                 nameString = nameString2.replace("\n", " ");
             }

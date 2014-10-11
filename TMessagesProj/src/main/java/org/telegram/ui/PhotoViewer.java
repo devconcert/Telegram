@@ -1230,7 +1230,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             currentMessageObject = imagesArr.get(currentIndex);
             TLRPC.User user = MessagesController.getInstance().getUser(currentMessageObject.messageOwner.from_id);
             if (user != null) {
-                nameTextView.setText(ContactsController.formatName(user.first_name, user.last_name));
+                nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name));
             } else {
                 nameTextView.setText("");
             }

@@ -233,7 +233,7 @@ public class ChatBaseCell extends BaseCell {
 
         String newNameString = null;
         if (drawName && isChat && newUser != null && !currentMessageObject.isOut()) {
-            newNameString = ContactsController.formatName(newUser.first_name, newUser.last_name);
+            newNameString = ContactsController.getFirstNameOrLastNameByLanguage(newUser.first_name, newUser.last_name);
         }
 
         if (currentNameString == null && newNameString != null || currentNameString != null && newNameString == null || currentNameString != null && newNameString != null && !currentNameString.equals(newNameString)) {
@@ -243,7 +243,7 @@ public class ChatBaseCell extends BaseCell {
         newUser = MessagesController.getInstance().getUser(currentMessageObject.messageOwner.fwd_from_id);
         newNameString = null;
         if (newUser != null && drawForwardedName && currentMessageObject.messageOwner instanceof TLRPC.TL_messageForwarded) {
-            newNameString = ContactsController.formatName(newUser.first_name, newUser.last_name);
+            newNameString = ContactsController.getFirstNameOrLastNameByLanguage(newUser.first_name, newUser.last_name);
         }
         return currentForwardNameString == null && newNameString != null || currentForwardNameString != null && newNameString == null || currentForwardNameString != null && newNameString != null && !currentForwardNameString.equals(newNameString);
     }
@@ -287,7 +287,7 @@ public class ChatBaseCell extends BaseCell {
         namesOffset = 0;
 
         if (drawName && isChat && currentUser != null && !currentMessageObject.isOut()) {
-            currentNameString = ContactsController.formatName(currentUser.first_name, currentUser.last_name);
+            currentNameString = ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name);
             nameWidth = getMaxNameWidth();
 
             CharSequence nameStringFinal = TextUtils.ellipsize(currentNameString.replace("\n", " "), namePaint, nameWidth - AndroidUtilities.dp(12), TextUtils.TruncateAt.END);
@@ -308,7 +308,7 @@ public class ChatBaseCell extends BaseCell {
         if (drawForwardedName && messageObject.messageOwner instanceof TLRPC.TL_messageForwarded) {
             currentForwardUser = MessagesController.getInstance().getUser(messageObject.messageOwner.fwd_from_id);
             if (currentForwardUser != null) {
-                currentForwardNameString = ContactsController.formatName(currentForwardUser.first_name, currentForwardUser.last_name);
+                currentForwardNameString = ContactsController.getFirstNameOrLastNameByLanguage(currentForwardUser.first_name, currentForwardUser.last_name);
 
                 forwardedNameWidth = getMaxNameWidth();
 

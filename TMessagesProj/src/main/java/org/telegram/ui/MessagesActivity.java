@@ -629,7 +629,7 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                         if (user == null) {
                             return;
                         }
-                        builder.setMessage(LocaleController.formatStringSimple(selectAlertString, ContactsController.formatName(user.first_name, user.last_name)));
+                        builder.setMessage(LocaleController.formatStringSimple(selectAlertString, ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name)));
                     } else if (lower_part < 0) {
                         TLRPC.Chat chat = MessagesController.getInstance().getChat(-lower_part);
                         if (chat == null) {
@@ -644,7 +644,7 @@ public class MessagesActivity extends BaseFragment implements NotificationCenter
                 if (user == null) {
                     return;
                 }
-                builder.setMessage(LocaleController.formatStringSimple(selectAlertString, ContactsController.formatName(user.first_name, user.last_name)));
+                builder.setMessage(LocaleController.formatStringSimple(selectAlertString, ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name)));
             }
             CheckBox checkBox = null;
             /*if (delegate instanceof ChatActivity) {

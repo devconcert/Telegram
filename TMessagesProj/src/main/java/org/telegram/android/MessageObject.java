@@ -90,7 +90,7 @@ public class MessageObject {
                         messageText = LocaleController.getString("ActionYouCreateGroup", R.string.ActionYouCreateGroup);
                     } else {
                         if (fromUser != null) {
-                            messageText = LocaleController.getString("ActionCreateGroup", R.string.ActionCreateGroup).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                            messageText = LocaleController.getString("ActionCreateGroup", R.string.ActionCreateGroup).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                         } else {
                             messageText = LocaleController.getString("ActionCreateGroup", R.string.ActionCreateGroup).replace("un1", "");
                         }
@@ -101,7 +101,7 @@ public class MessageObject {
                             messageText = LocaleController.getString("ActionYouLeftUser", R.string.ActionYouLeftUser);
                         } else {
                             if (fromUser != null) {
-                                messageText = LocaleController.getString("ActionLeftUser", R.string.ActionLeftUser).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                                messageText = LocaleController.getString("ActionLeftUser", R.string.ActionLeftUser).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                             } else {
                                 messageText = LocaleController.getString("ActionLeftUser", R.string.ActionLeftUser).replace("un1", "");
                             }
@@ -116,11 +116,11 @@ public class MessageObject {
                         }
                         if (who != null && fromUser != null) {
                             if (isFromMe()) {
-                                messageText = LocaleController.getString("ActionYouKickUser", R.string.ActionYouKickUser).replace("un2", ContactsController.formatName(who.first_name, who.last_name));
+                                messageText = LocaleController.getString("ActionYouKickUser", R.string.ActionYouKickUser).replace("un2", ContactsController.getFirstNameOrLastNameByLanguage(who.first_name, who.last_name));
                             } else if (message.action.user_id == UserConfig.getClientUserId()) {
-                                messageText = LocaleController.getString("ActionKickUserYou", R.string.ActionKickUserYou).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                                messageText = LocaleController.getString("ActionKickUserYou", R.string.ActionKickUserYou).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                             } else {
-                                messageText = LocaleController.getString("ActionKickUser", R.string.ActionKickUser).replace("un2", ContactsController.formatName(who.first_name, who.last_name)).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                                messageText = LocaleController.getString("ActionKickUser", R.string.ActionKickUser).replace("un2", ContactsController.getFirstNameOrLastNameByLanguage(who.first_name, who.last_name)).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                             }
                         } else {
                             messageText = LocaleController.getString("ActionKickUser", R.string.ActionKickUser).replace("un2", "").replace("un1", "");
@@ -136,11 +136,11 @@ public class MessageObject {
                     }
                     if (whoUser != null && fromUser != null) {
                         if (isFromMe()) {
-                            messageText = LocaleController.getString("ActionYouAddUser", R.string.ActionYouAddUser).replace("un2", ContactsController.formatName(whoUser.first_name, whoUser.last_name));
+                            messageText = LocaleController.getString("ActionYouAddUser", R.string.ActionYouAddUser).replace("un2", ContactsController.getFirstNameOrLastNameByLanguage(whoUser.first_name, whoUser.last_name));
                         } else if (message.action.user_id == UserConfig.getClientUserId()) {
-                            messageText = LocaleController.getString("ActionAddUserYou", R.string.ActionAddUserYou).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                            messageText = LocaleController.getString("ActionAddUserYou", R.string.ActionAddUserYou).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                         } else {
-                            messageText = LocaleController.getString("ActionAddUser", R.string.ActionAddUser).replace("un2", ContactsController.formatName(whoUser.first_name, whoUser.last_name)).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                            messageText = LocaleController.getString("ActionAddUser", R.string.ActionAddUser).replace("un2", ContactsController.getFirstNameOrLastNameByLanguage(whoUser.first_name, whoUser.last_name)).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                         }
                     } else {
                         messageText = LocaleController.getString("ActionAddUser", R.string.ActionAddUser).replace("un2", "").replace("un1", "");
@@ -150,7 +150,7 @@ public class MessageObject {
                         messageText = LocaleController.getString("ActionYouChangedPhoto", R.string.ActionYouChangedPhoto);
                     } else {
                         if (fromUser != null) {
-                            messageText = LocaleController.getString("ActionChangedPhoto", R.string.ActionChangedPhoto).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                            messageText = LocaleController.getString("ActionChangedPhoto", R.string.ActionChangedPhoto).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                         } else {
                             messageText = LocaleController.getString("ActionChangedPhoto", R.string.ActionChangedPhoto).replace("un1", "");
                         }
@@ -160,7 +160,7 @@ public class MessageObject {
                         messageText = LocaleController.getString("ActionYouChangedTitle", R.string.ActionYouChangedTitle).replace("un2", message.action.title);
                     } else {
                         if (fromUser != null) {
-                            messageText = LocaleController.getString("ActionChangedTitle", R.string.ActionChangedTitle).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name)).replace("un2", message.action.title);
+                            messageText = LocaleController.getString("ActionChangedTitle", R.string.ActionChangedTitle).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name)).replace("un2", message.action.title);
                         } else {
                             messageText = LocaleController.getString("ActionChangedTitle", R.string.ActionChangedTitle).replace("un1", "").replace("un2", message.action.title);
                         }
@@ -170,7 +170,7 @@ public class MessageObject {
                         messageText = LocaleController.getString("ActionYouRemovedPhoto", R.string.ActionYouRemovedPhoto);
                     } else {
                         if (fromUser != null) {
-                            messageText = LocaleController.getString("ActionRemovedPhoto", R.string.ActionRemovedPhoto).replace("un1", ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                            messageText = LocaleController.getString("ActionRemovedPhoto", R.string.ActionRemovedPhoto).replace("un1", ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                         } else {
                             messageText = LocaleController.getString("ActionRemovedPhoto", R.string.ActionRemovedPhoto).replace("un1", "");
                         }
@@ -231,13 +231,13 @@ public class MessageObject {
                     messageText = LocaleController.formatString("NotificationUnrecognizedDevice", R.string.NotificationUnrecognizedDevice, name, date, message.action.title, message.action.address);
                 } else if (message.action instanceof TLRPC.TL_messageActionUserJoined) {
                     if (fromUser != null) {
-                        messageText = LocaleController.formatString("NotificationContactJoined", R.string.NotificationContactJoined, ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                        messageText = LocaleController.formatString("NotificationContactJoined", R.string.NotificationContactJoined, ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                     } else {
                         messageText = LocaleController.formatString("NotificationContactJoined", R.string.NotificationContactJoined, "");
                     }
                 } else if (message.action instanceof TLRPC.TL_messageActionUserUpdatedPhoto) {
                     if (fromUser != null) {
-                        messageText = LocaleController.formatString("NotificationContactNewPhoto", R.string.NotificationContactNewPhoto, ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                        messageText = LocaleController.formatString("NotificationContactNewPhoto", R.string.NotificationContactNewPhoto, ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                     } else {
                         messageText = LocaleController.formatString("NotificationContactNewPhoto", R.string.NotificationContactNewPhoto, "");
                     }

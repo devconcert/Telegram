@@ -740,10 +740,10 @@ public class PopupNotificationActivity extends Activity implements NotificationC
 
         if (currentChat != null && currentUser != null) {
             actionBarLayer.setTitle(currentChat.title);
-            actionBarLayer.setSubtitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+            actionBarLayer.setSubtitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
             actionBarLayer.setTitleIcon(0, 0);
         } else if (currentUser != null) {
-            actionBarLayer.setTitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+            actionBarLayer.setTitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
             if ((int)dialog_id == 0) {
                 actionBarLayer.setTitleIcon(R.drawable.ic_lock_white, AndroidUtilities.dp(4));
             } else {
@@ -768,10 +768,10 @@ public class PopupNotificationActivity extends Activity implements NotificationC
             if (currentUser.phone != null && currentUser.phone.length() != 0) {
                 actionBarLayer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone));
             } else {
-                actionBarLayer.setTitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+                actionBarLayer.setTitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
             }
         } else {
-            actionBarLayer.setTitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+            actionBarLayer.setTitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
         }
         CharSequence printString = MessagesController.getInstance().printingStrings.get(currentMessageObject.getDialogId());
         if (printString == null || printString.length() == 0) {

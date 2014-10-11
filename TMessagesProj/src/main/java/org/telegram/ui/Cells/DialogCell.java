@@ -571,17 +571,17 @@ public class DialogCell extends BaseCell {
             } else if (user != null) {
                 if (user.id / 1000 != 777 && user.id / 1000 != 333 && ContactsController.getInstance().contactsDict.get(user.id) == null) {
                     if (ContactsController.getInstance().contactsDict.size() == 0 && (!ContactsController.getInstance().contactsLoaded || ContactsController.getInstance().isLoadingContacts())) {
-                        nameString = ContactsController.formatName(user.first_name, user.last_name);
+                        nameString = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                     } else {
                         if (user.phone != null && user.phone.length() != 0) {
                             nameString = PhoneFormat.getInstance().format("+" + user.phone);
                         } else {
                             currentNamePaint = nameUnknownPaint;
-                            nameString = ContactsController.formatName(user.first_name, user.last_name);
+                            nameString = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                         }
                     }
                 } else {
-                    nameString = ContactsController.formatName(user.first_name, user.last_name);
+                    nameString = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
                 }
                 if (encryptedChat != null) {
                     currentNamePaint = nameEncryptedPaint;

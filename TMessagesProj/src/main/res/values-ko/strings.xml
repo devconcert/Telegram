@@ -15,7 +15,7 @@ update date : 2014-10-03
     <!--code enter view-->
     <string name="YourCode">인증코드 입력</string>
     <string name="SentSmsCode">인증코드 메시지를 아래 번호로 전송했습니다<![CDATA[<br/>]]></string>
-    <string name="CallText">인증코드가 도착이 안하면\n텔레그램이 %1$d:%2$02d 후에 전화를 겁니다.</string>
+    <string name="CallText">인증코드가 도착 안하면\n텔레그램이 %1$d:%2$02d 후에 전화를 겁니다.</string>
     <string name="Calling">텔레그램이 전화 거는 중...</string>
     <string name="Code">코드</string>
     <string name="WrongNumber">전화번호가 틀렸나요?</string>
@@ -80,6 +80,7 @@ update date : 2014-10-03
     <string name="GotAQuestion">텔레그램에 관해\n궁금한 사항이 있나요?</string>
     <string name="ChatTakePhoto">사진 촬영</string>
     <string name="ChatGallery">갤러리</string>
+    <string name="ChatEmoticon">이모티콘</string>
     <string name="ChatLocation">위치</string>
     <string name="ChatVideo">동영상</string>
     <string name="ChatDocument">문서</string>
@@ -352,7 +353,9 @@ update date : 2014-10-03
     <string name="AttachAudio">음성메시지</string>
     <string name="FromYou">나</string>
     <string name="ActionTakeScreenshootYou">화면을 캡처했습니다!</string>
-    <string name="ActionTakeScreenshoot">un1님이 화면은 캡처했습니다!</string>
+    <string name="ActionTakeScreenshoot">un1님이 화면을 캡처했습니다!</string>
+    <string name="EMOTICON_DOWN_TITLE">이모티콘 팩 다운</string>
+    <string name="EMOTICON_DOWN_TITLE_DETAIL">현재 이모티콘 팩 어플이 없습니다.\n마켓에서 검색하시겠습니까?</string>
     <!--Alert messages-->
     <string name="InvalidPhoneNumber">올바른 전화번호를 입력해 주세요</string>
     <string name="CodeExpired">코드가 만료되었습니다. 다시 로그인하세요</string>
@@ -362,7 +365,7 @@ update date : 2014-10-03
     <string name="InvalidLastName">올바른 성을 입력해 주세요</string>
     <string name="Loading">불러오는 중...</string>
     <string name="NoPlayerInstalled">동영상 재생 앱이 없습니다. 계속하려면 앱을 설치해 주세요.</string>
-    <string name="NoMailInstalled">devconcert@devconcert.net 이메일 주소로 이 문제를 보내주세요.</string>
+    <string name="NoMailInstalled">메일:devconcert@devconcert.net\n피드백:https://github.com/devconcert/Telegram/issues\n이메일 주소로 이 문제를 보내주세요.</string>
     <string name="NoHandleAppInstalled">\'%1$s\' 파일 형식을 처리할 앱이 없습니다. 계속하려면 앱을 설치해 주세요.</string>
     <string name="InviteUser">친구가 아직 텔레그램을 사용하지 않네요. 초대해 보세요!</string>
     <string name="AreYouSure">확실합니까?</string>
@@ -381,8 +384,8 @@ update date : 2014-10-03
     <string name="AreYouSureDeleteContact">대화상대를 삭제할까요?</string>
     <string name="AreYouSureSecretChat">비밀대화를 시작할까요?</string>
     <string name="ForwardFromMyName">내 이름으로 전달</string>
-    <string name="SendMessagesToGroup">Send messages to %1$s?</string>
-    <string name="ForwardMessagesToGroup">Forward messages to %1$s?</string>
+    <string name="SendMessagesToGroup">%1$s 그룹에 매세지를 보낼까요?</string>
+    <string name="ForwardMessagesToGroup">%1$s 그룹에 메세지를 전달할까요?</string>
     <!--Intro view-->
     <string name="Page1Title">텔레그램</string>
     <string name="Page2Title">눈부신 속도</string>

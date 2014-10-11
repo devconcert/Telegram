@@ -1254,7 +1254,7 @@ public class MessagesStorage {
                                         if (user.status != null) {
                                             user.status.expires = cursor.intValue(7);
                                         }
-                                        resultArrayNames.add(Html.fromHtml("<font color=\"#00a60e\">" + ContactsController.formatName(user.first_name, user.last_name) + "</font>"));
+                                        resultArrayNames.add(Html.fromHtml("<font color=\"#00a60e\">" + ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name) + "</font>"));
                                         resultArray.add(chat);
                                         encUsers.add(user);
                                     }

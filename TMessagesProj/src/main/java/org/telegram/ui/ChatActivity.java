@@ -56,6 +56,7 @@ import org.telegram.android.MediaController;
 import org.telegram.android.MessagesStorage;
 import org.telegram.android.NotificationsController;
 import org.telegram.android.SendMessagesHelper;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.ContactsController;
@@ -182,6 +183,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int attach_document = 9;
     private final static int attach_location = 10;
     private final static int chat_menu_avatar = 11;
+    private final static int attach_emoticon = 12;
 
     public ChatActivity(Bundle args) {
         super(args);
@@ -459,6 +461,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         } catch (Exception e) {
                             FileLog.e("tmessages", e);
                         }
+                    } else if (id == attach_emoticon) {
+                        ApplicationLoader.isChangeOption = true;
+                        if(isExistApp(BuildVars.PACKAGE_NAME_EMOTICON)){
+                            startEmoticonSelectActivity();
+                        }else{
+                            searchOnMarket();
+                        }
+                        ApplicationLoader.isChangeOption = false;
                     } else if (id == attach_location) {
                         if (!isGoogleMapsInstalled()) {
                             return;
@@ -573,6 +583,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             item.addSubItem(attach_photo, LocaleController.getString("ChatTakePhoto", R.string.ChatTakePhoto), R.drawable.ic_attach_photo);
             item.addSubItem(attach_gallery, LocaleController.getString("ChatGallery", R.string.ChatGallery), R.drawable.ic_attach_gallery);
             item.addSubItem(attach_video, LocaleController.getString("ChatVideo", R.string.ChatVideo), R.drawable.ic_attach_video);
+            item.addSubItem(attach_emoticon, LocaleController.getString("Emoticon", R.string.ChatEmoticon), R.drawable.ic_attach_smile);
             item.addSubItem(attach_document, LocaleController.getString("ChatDocument", R.string.ChatDocument), R.drawable.ic_ab_doc);
             item.addSubItem(attach_location, LocaleController.getString("ChatLocation", R.string.ChatLocation), R.drawable.ic_attach_location);
             menuItem = item;
@@ -873,6 +884,42 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         }
         return fragmentView;
+    }
+    private boolean isPackageInstalled(String packagename, Context context) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private boolean isExistApp( String packageName ){
+        PackageManager pm = getParentActivity().getPackageManager();
+        try{
+            pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+        }
+        catch(Exception e){
+            return false;
+        }
+        return true;
+    }
+
+    public void searchOnMarket() {
+        String alertTitle = LocaleController.getString("EMOTICON_DOWN_TITLE", R.string.EMOTICON_DOWN_TITLE);
+        String buttonMessage = LocaleController.getString("EMOTICON_DOWN_TITLE_DETAIL", R.string.EMOTICON_DOWN_TITLE_DETAIL);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(alertTitle);
+        builder.setMessage(buttonMessage);
+        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=" + BuildVars.PACKAGE_NAME_EMOTICON));
+                startActivityForResult(intent, 99);
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
+        showAlertDialog(builder);
     }
 
     private void scrollToLastMessage() {
@@ -1252,10 +1299,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 if (currentUser.phone != null && currentUser.phone.length() != 0) {
                     actionBarLayer.setTitle(PhoneFormat.getInstance().format("+" + currentUser.phone));
                 } else {
-                    actionBarLayer.setTitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+                    actionBarLayer.setTitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
                 }
             } else {
-                actionBarLayer.setTitle(ContactsController.formatName(currentUser.first_name, currentUser.last_name));
+                actionBarLayer.setTitle(ContactsController.getFirstNameOrLastNameByLanguage(currentUser.first_name, currentUser.last_name));
             }
         }
 
@@ -2609,6 +2656,21 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    public void startEmoticonSelectActivity() {
+        try {
+            /*
+            Intent intent = this.getPackageManager().getLaunchIntentForPackage(packageName);
+startActivity(intent);
+             */
+            Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+            photoPickerIntent.setPackage(BuildVars.PACKAGE_NAME_EMOTICON);
+            photoPickerIntent.setType("image/*");
+            startActivityForResult(photoPickerIntent, 1);
+        } catch (Exception e) {
+            FileLog.e("tmessages", e);
+        }
+    }
+
     @Override
     public void onBeginSlide() {
         super.onBeginSlide();
@@ -3593,7 +3655,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
 
             if (type != 12 && type != 13 && nameTextView != null && fromUser != null && type != 8 && type != 9) {
-                nameTextView.setText(ContactsController.formatName(fromUser.first_name, fromUser.last_name));
+                nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(fromUser.first_name, fromUser.last_name));
                 nameTextView.setTextColor(AndroidUtilities.getColorForId(message.messageOwner.from_id));
             }
 
@@ -3627,7 +3689,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             } else if (type == 12 || type == 13) {
                 TLRPC.User contactUser = MessagesController.getInstance().getUser(message.messageOwner.media.user_id);
                 if (contactUser != null) {
-                    nameTextView.setText(ContactsController.formatName(message.messageOwner.media.first_name, message.messageOwner.media.last_name));
+                    nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(message.messageOwner.media.first_name, message.messageOwner.media.last_name));
                     nameTextView.setTextColor(AndroidUtilities.getColorForId(contactUser.id));
                     String phone = message.messageOwner.media.phone_number;
                     if (phone != null && phone.length() != 0) {
@@ -3650,7 +3712,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         addContactView.setVisibility(View.GONE);
                     }
                 } else {
-                    nameTextView.setText(ContactsController.formatName(message.messageOwner.media.first_name, message.messageOwner.media.last_name));
+                    nameTextView.setText(ContactsController.getFirstNameOrLastNameByLanguage(message.messageOwner.media.first_name, message.messageOwner.media.last_name));
                     nameTextView.setTextColor(AndroidUtilities.getColorForId(message.messageOwner.media.user_id));
                     String phone = message.messageOwner.media.phone_number;
                     if (phone != null && phone.length() != 0) {
