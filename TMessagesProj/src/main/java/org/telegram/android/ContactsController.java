@@ -1001,11 +1001,7 @@ public class ContactsController {
             if (skip) {
                 continue;
             }
-
-            String key = value.first_name;
-            if (key.length() == 0) {
-                key = value.last_name;
-            }
+            String key = ContactsController.getFirstNameOrLastNameByLanguage(value.first_name, value.last_name);
             if (key.length() == 0) {
                 key = "#";
                 if (value.phones.size() != 0) {
@@ -1029,14 +1025,8 @@ public class ContactsController {
             Collections.sort(entry.getValue(), new Comparator<Contact>() {
                 @Override
                 public int compare(Contact contact, Contact contact2) {
-                    String toComapre1 = contact.first_name;
-                    if (toComapre1.length() == 0) {
-                        toComapre1 = contact.last_name;
-                    }
-                    String toComapre2 = contact2.first_name;
-                    if (toComapre2.length() == 0) {
-                        toComapre2 = contact2.last_name;
-                    }
+                    String toComapre1 = ContactsController.getFirstNameOrLastNameByLanguage(contact.first_name, contact.last_name);
+                    String toComapre2 = ContactsController.getFirstNameOrLastNameByLanguage(contact2.first_name, contact2.last_name);
                     return toComapre1.compareTo(toComapre2);
                 }
             });
@@ -1066,14 +1056,8 @@ public class ContactsController {
                 public int compare(TLRPC.TL_contact tl_contact, TLRPC.TL_contact tl_contact2) {
                     TLRPC.User user1 = MessagesController.getInstance().getUser(tl_contact.user_id);
                     TLRPC.User user2 = MessagesController.getInstance().getUser(tl_contact2.user_id);
-                    String name1 = user1.first_name;
-                    if (name1 == null || name1.length() == 0) {
-                        name1 = user1.last_name;
-                    }
-                    String name2 = user2.first_name;
-                    if (name2 == null || name2.length() == 0) {
-                        name2 = user2.last_name;
-                    }
+                    String name1 = ContactsController.getFirstNameOrLastNameByLanguage(user1.first_name, user1.last_name);
+                    String name2 = ContactsController.getFirstNameOrLastNameByLanguage(user2.first_name, user2.last_name);
                     return name1.compareTo(name2);
                 }
             });
@@ -1089,10 +1073,7 @@ public class ContactsController {
                 continue;
             }
 
-            String key = user.first_name;
-            if (key == null || key.length() == 0) {
-                key = user.last_name;
-            }
+            String key = ContactsController.getFirstNameOrLastNameByLanguage(user.first_name, user.last_name);
             if (key.length() == 0) {
                 key = "#";
             } else {
@@ -1558,7 +1539,6 @@ public class ContactsController {
             }
         }, true, RPCRequest.RPCRequestClassGeneric);
     }
-
 
     public static String getFirstNameOrLastNameByLanguage(String first_name, String last_name) {
         String name = "";
