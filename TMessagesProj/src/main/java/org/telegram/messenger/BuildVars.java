@@ -15,4 +15,6 @@ public class BuildVars {
     public static String HOCKEY_APP_HASH = "your-hockeyapp-api-key-here";
     public static String GCM_SENDER_ID = "760348033672";
     public static String SEND_LOGS_EMAIL = "email@gmail.com";
+    public static final String PASSWORD_SALT = "";  // your password gen
+    public static final String PACKAGE_NAME_EMOTICON = ""; // for emoticon package name
 }
