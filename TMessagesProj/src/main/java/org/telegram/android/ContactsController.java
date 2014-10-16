@@ -1552,7 +1552,7 @@ public class ContactsController {
         return name;
     }
 
-//    public static String formatName(String firstName, String lastName) {
-//        return getFirstNameOrLastNameByLanguage(firstName, lastName);
-//    }
+    public static String formatName(String firstName, String lastName) {
+        return getFirstNameOrLastNameByLanguage(firstName, lastName);
+    }
 }
