@@ -197,6 +197,16 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
             searching = false;
             searchWas = false;
 
+            HashMap<Integer, TLRPC.User> mapUserToIgnore = new HashMap<Integer, TLRPC.User>();
+            for (TLRPC.TL_contact contact : ContactsController.getInstance().contacts) {
+                TLRPC.User user = MessagesController.getInstance().getUser(contact.user_id);
+                String name = ContactsController.formatName(user.first_name, user.last_name).toLowerCase();
+                if (name.startsWith("#")) {
+                    mapUserToIgnore.put(user.id, null);
+                }
+            }
+            setIgnoreUsers(mapUserToIgnore);
+
             fragmentView = inflater.inflate(R.layout.contacts_layout, container, false);
 
             emptyTextView = (TextView)fragmentView.findViewById(R.id.searchEmptyView);

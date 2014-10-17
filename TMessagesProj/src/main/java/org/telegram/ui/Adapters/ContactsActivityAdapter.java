@@ -121,7 +121,7 @@ public class ContactsActivityAdapter extends SectionedBaseAdapter {
 
             if (ignoreUsers != null) {
                 if (ignoreUsers.containsKey(user.id)) {
-                    ((ChatOrUserCell)convertView).drawAlpha = 0.5f;
+                    ((ChatOrUserCell)convertView).drawAlpha = 0.25f;
                 } else {
                     ((ChatOrUserCell)convertView).drawAlpha = 1.0f;
                 }
