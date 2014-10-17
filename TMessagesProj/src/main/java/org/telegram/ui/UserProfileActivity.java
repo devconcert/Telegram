@@ -618,7 +618,14 @@ public class UserProfileActivity extends BaseFragment implements NotificationCen
                         @Override
                         public void onClick(View view) {
                             try {
-                                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + user.phone));
+                                Intent intent;
+                                if(LocaleController.getCurrentLanguageCode().equals("ko") && user.phone.startsWith("82")) {
+                                    String kDial = "0" + user.phone.substring(2, user.phone.length());
+                                    intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + kDial));
+                                }
+                                else {
+                                    intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:+" + user.phone));
+                                }
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 getParentActivity().startActivity(intent);
                             } catch (Exception e) {
