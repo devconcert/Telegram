@@ -29,6 +29,7 @@ import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ApplicationLoader;
+import org.telegramkr.core.SoundSearcher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1213,7 +1214,7 @@ public class MessagesStorage {
                     SQLiteCursor cursor = database.queryFinalized("SELECT u.data, u.status, u.name FROM users as u INNER JOIN contacts as c ON u.uid = c.uid");
                     while (cursor.next()) {
                         String name = cursor.stringValue(2);
-                        if (name.startsWith(q) || name.contains(" " + q)) {
+                        if (SoundSearcher.matchString(name, q) || name.startsWith(q) || name.contains(" " + q)) {
                             ByteBufferDesc data = buffersStorage.getFreeBuffer(cursor.byteArrayLength(0));
                             if (data != null && cursor.byteBufferValue(0, data.buffer) != 0) {
                                 TLRPC.User user = (TLRPC.User)TLClassStore.Instance().TLdeserialize(data, data.readInt32());
