@@ -9,6 +9,7 @@
 package org.telegram.ui;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -20,12 +21,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.MessagesController;
-import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.IdenticonDrawable;
@@ -45,7 +47,12 @@ public class IdenticonActivity extends BaseFragment {
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("EncryptionKey", R.string.EncryptionKey));
 
@@ -63,9 +70,9 @@ public class IdenticonActivity extends BaseFragment {
         TextView textView = (TextView) fragmentView.findViewById(R.id.identicon_text);
         TLRPC.EncryptedChat encryptedChat = MessagesController.getInstance().getEncryptedChat(chat_id);
         if (encryptedChat != null) {
-            IdenticonDrawable drawable = new IdenticonDrawable();
-            identiconView.setImageDrawable(drawable);
-            drawable.setEncryptedChat(encryptedChat);
+            IdenticonDrawable identiconDrawable = new IdenticonDrawable();
+            identiconView.setImageDrawable(identiconDrawable);
+            identiconDrawable.setEncryptedChat(encryptedChat);
             TLRPC.User user = MessagesController.getInstance().getUser(encryptedChat.user_id);
             textView.setText(AndroidUtilities.replaceTags(LocaleController.formatString("EncryptionKeyDescription", R.string.EncryptionKeyDescription, user.first_name, user.first_name)));
         }

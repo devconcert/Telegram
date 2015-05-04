@@ -11,6 +11,7 @@ package org.telegram.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -31,6 +32,7 @@ import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.telegram.messenger.R;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.telegram.android.AndroidUtilities;
@@ -38,6 +40,7 @@ import org.telegram.android.LocaleController;
 import org.telegram.android.MediaController;
 import org.telegram.android.MessagesStorage;
 import org.telegram.android.NotificationCenter;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.android.volley.AuthFailureError;
 import org.telegram.android.volley.Request;
 import org.telegram.android.volley.RequestQueue;
@@ -45,12 +48,11 @@ import org.telegram.android.volley.Response;
 import org.telegram.android.volley.VolleyError;
 import org.telegram.android.volley.toolbox.JsonObjectRequest;
 import org.telegram.android.volley.toolbox.Volley;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.MessageObject;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -59,6 +61,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.PhotoPickerPhotoCell;
 import org.telegram.ui.Components.BackupImageView;
+import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.PhotoPickerBottomLayout;
 
 import java.net.URLEncoder;
@@ -72,6 +75,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
     public interface PhotoPickerActivityDelegate {
         void selectedPhotosChanged();
         void actionButtonPressed(boolean canceled);
+        boolean didSelectVideo(String path);
     }
 
     private RequestQueue requestQueue;
@@ -102,10 +106,11 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
     private int itemWidth = 100;
     private boolean sendPressed;
     private boolean singlePhoto;
+    private ChatActivity chatActivity;
 
     private PhotoPickerActivityDelegate delegate;
 
-    public PhotoPickerActivity(int type, MediaController.AlbumEntry selectedAlbum, HashMap<Integer, MediaController.PhotoEntry> selectedPhotos, HashMap<String, MediaController.SearchImage> selectedWebPhotos, ArrayList<MediaController.SearchImage> recentImages, boolean onlyOnePhoto) {
+    public PhotoPickerActivity(int type, MediaController.AlbumEntry selectedAlbum, HashMap<Integer, MediaController.PhotoEntry> selectedPhotos, HashMap<String, MediaController.SearchImage> selectedWebPhotos, ArrayList<MediaController.SearchImage> recentImages, boolean onlyOnePhoto, ChatActivity chatActivity) {
         super();
         this.selectedAlbum = selectedAlbum;
         this.selectedPhotos = selectedPhotos;
@@ -113,6 +118,10 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         this.type = type;
         this.recentImages = recentImages;
         this.singlePhoto = onlyOnePhoto;
+        this.chatActivity = chatActivity;
+        if (selectedAlbum != null && selectedAlbum.isVideo) {
+            singlePhoto = true;
+        }
     }
 
     @Override
@@ -144,6 +153,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
     @Override
     public View createView(Context context, LayoutInflater inflater) {
         actionBar.setBackgroundColor(0xff333333);
+        actionBar.setTitleColor(0xffffffff);
         actionBar.setItemsBackground(R.drawable.bar_selector_picker);
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         if (selectedAlbum != null) {
@@ -256,8 +266,8 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         listView.setSelector(R.drawable.list_selector);
         frameLayout.addView(listView);
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.bottomMargin = singlePhoto ? 0 : AndroidUtilities.dp(48);
         listView.setLayoutParams(layoutParams);
         listView.setAdapter(listAdapter = new ListAdapter(context));
@@ -265,21 +275,30 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ArrayList<Object> arrayList = null;
-                if (selectedAlbum != null) {
-                    arrayList = (ArrayList) selectedAlbum.photos;
-                } else {
-                    if (searchResult.isEmpty() && lastSearchString == null) {
-                        arrayList = (ArrayList) recentImages;
-                    } else {
-                        arrayList = (ArrayList) searchResult;
+                if (selectedAlbum != null && selectedAlbum.isVideo) {
+                    if (i < 0 || i >= selectedAlbum.photos.size()) {
+                        return;
                     }
+                    if (delegate.didSelectVideo(selectedAlbum.photos.get(i).path)) {
+                        finishFragment();
+                    }
+                } else {
+                    ArrayList<Object> arrayList;
+                    if (selectedAlbum != null) {
+                        arrayList = (ArrayList) selectedAlbum.photos;
+                    } else {
+                        if (searchResult.isEmpty() && lastSearchString == null) {
+                            arrayList = (ArrayList) recentImages;
+                        } else {
+                            arrayList = (ArrayList) searchResult;
+                        }
+                    }
+                    if (i < 0 || i >= arrayList.size()) {
+                        return;
+                    }
+                    PhotoViewer.getInstance().setParentActivity(getParentActivity());
+                    PhotoViewer.getInstance().openPhotoForSelect(arrayList, i, singlePhoto ? 1 : 0, PhotoPickerActivity.this, chatActivity);
                 }
-                if (i < 0 || i >= arrayList.size()) {
-                    return;
-                }
-                PhotoViewer.getInstance().setParentActivity(getParentActivity());
-                PhotoViewer.getInstance().openPhotoForSelect(arrayList, i, singlePhoto ? 1 : 0, PhotoPickerActivity.this);
             }
         });
 
@@ -302,7 +321,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                             }
                         });
                         builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                        showAlertDialog(builder);
+                        showDialog(builder.create());
                         return true;
                     }
                     return false;
@@ -326,8 +345,8 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         }
         frameLayout.addView(emptyView);
         layoutParams = (FrameLayout.LayoutParams) emptyView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.bottomMargin = singlePhoto ? 0 : AndroidUtilities.dp(48);
         emptyView.setLayoutParams(layoutParams);
         emptyView.setOnTouchListener(new View.OnTouchListener() {
@@ -362,16 +381,16 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
             progressView.setVisibility(View.GONE);
             frameLayout.addView(progressView);
             layoutParams = (FrameLayout.LayoutParams) progressView.getLayoutParams();
-            layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-            layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+            layoutParams.width = LayoutHelper.MATCH_PARENT;
+            layoutParams.height = LayoutHelper.MATCH_PARENT;
             layoutParams.bottomMargin = singlePhoto ? 0 : AndroidUtilities.dp(48);
             progressView.setLayoutParams(layoutParams);
 
             ProgressBar progressBar = new ProgressBar(context);
             progressView.addView(progressBar);
             layoutParams = (FrameLayout.LayoutParams) progressBar.getLayoutParams();
-            layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-            layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+            layoutParams.width = LayoutHelper.WRAP_CONTENT;
+            layoutParams.height = LayoutHelper.WRAP_CONTENT;
             layoutParams.gravity = Gravity.CENTER;
             progressBar.setLayoutParams(layoutParams);
 
@@ -381,7 +400,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         photoPickerBottomLayout = new PhotoPickerBottomLayout(context);
         frameLayout.addView(photoPickerBottomLayout);
         layoutParams = (FrameLayout.LayoutParams) photoPickerBottomLayout.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
         layoutParams.height = AndroidUtilities.dp(48);
         layoutParams.gravity = Gravity.BOTTOM;
         photoPickerBottomLayout.setLayoutParams(layoutParams);
@@ -441,6 +460,18 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         }
     }
 
+//    @Override
+//    public boolean onBackPressed() {
+//        ApplicationLoader.isChangeOption = false;
+//        if (selectedAlbum != null) {
+//            selectedAlbum = null;
+//            actionBar.setTitle(LocaleController.getString("Gallery", R.string.Gallery));
+//            fixLayoutInternal();
+//            return false;
+//        }
+//        return super.onBackPressed();
+//    }
+
     private PhotoPickerPhotoCell getCellForIndex(int index) {
         int count = listView.getChildCount();
 
@@ -454,7 +485,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                         continue;
                     }
                 } else {
-                    ArrayList<MediaController.SearchImage> array = null;
+                    ArrayList<MediaController.SearchImage> array;
                     if (searchResult.isEmpty() && lastSearchString == null) {
                         array = recentImages;
                     } else {
@@ -501,12 +532,16 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                     cell.photoImage.setImage(photoEntry.thumbPath, null, cell.getContext().getResources().getDrawable(R.drawable.nophotos));
                 } else if (photoEntry.path != null) {
                     cell.photoImage.setOrientation(photoEntry.orientation, true);
-                    cell.photoImage.setImage("thumb://" + photoEntry.imageId + ":" + photoEntry.path, null, cell.getContext().getResources().getDrawable(R.drawable.nophotos));
+                    if (photoEntry.isVideo) {
+                        cell.photoImage.setImage("vthumb://" + photoEntry.imageId + ":" + photoEntry.path, null, cell.getContext().getResources().getDrawable(R.drawable.nophotos));
+                    } else {
+                        cell.photoImage.setImage("thumb://" + photoEntry.imageId + ":" + photoEntry.path, null, cell.getContext().getResources().getDrawable(R.drawable.nophotos));
+                    }
                 } else {
                     cell.photoImage.setImageResource(R.drawable.nophotos);
                 }
             } else {
-                ArrayList<MediaController.SearchImage> array = null;
+                ArrayList<MediaController.SearchImage> array;
                 if (searchResult.isEmpty() && lastSearchString == null) {
                     array = recentImages;
                 } else {
@@ -548,7 +583,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                     continue;
                 }
             } else {
-                ArrayList<MediaController.SearchImage> array = null;
+                ArrayList<MediaController.SearchImage> array;
                 if (searchResult.isEmpty() && lastSearchString == null) {
                     array = recentImages;
                 } else {
@@ -577,7 +612,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         if (selectedAlbum != null) {
             return !(index < 0 || index >= selectedAlbum.photos.size()) && selectedPhotos.containsKey(selectedAlbum.photos.get(index).imageId);
         } else {
-            ArrayList<MediaController.SearchImage> array = null;
+            ArrayList<MediaController.SearchImage> array;
             if (searchResult.isEmpty() && lastSearchString == null) {
                 array = recentImages;
             } else {
@@ -602,8 +637,8 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                 selectedPhotos.put(photoEntry.imageId, photoEntry);
             }
         } else {
-            MediaController.SearchImage photoEntry = null;
-            ArrayList<MediaController.SearchImage> array = null;
+            MediaController.SearchImage photoEntry;
+            ArrayList<MediaController.SearchImage> array;
             if (searchResult.isEmpty() && lastSearchString == null) {
                 array = recentImages;
             } else {
@@ -650,7 +685,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                 selectedPhotos.put(photoEntry.imageId, photoEntry);
             }
         } else if (selectedPhotos.isEmpty()) {
-            ArrayList<MediaController.SearchImage> array = null;
+            ArrayList<MediaController.SearchImage> array;
             if (searchResult.isEmpty() && lastSearchString == null) {
                 array = recentImages;
             } else {
@@ -777,7 +812,10 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
             if (nextSearchBingString != null) {
                 url = nextSearchBingString;
             } else {
-                url = String.format(Locale.US, "https://api.datamarket.azure.com/Bing/Search/v1/Image?Query='%s'&$skip=%d&$top=%d&$format=json&Adult='Off'", URLEncoder.encode(query, "UTF-8"), offset, count);
+                boolean adult;
+                String phone = UserConfig.getCurrentUser().phone;
+                adult = phone.startsWith("44") || phone.startsWith("49") || phone.startsWith("43") || phone.startsWith("31") || phone.startsWith("1");
+                url = String.format(Locale.US, "https://api.datamarket.azure.com/Bing/Search/v1/Image?Query='%s'&$skip=%d&$top=%d&$format=json%s", URLEncoder.encode(query, "UTF-8"), offset, count, adult ? "" : "&Adult='Off'");
             }
             JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET, url, null,
                     new Response.Listener<JSONObject>() {
@@ -889,7 +927,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
         WindowManager manager = (WindowManager) ApplicationLoader.applicationContext.getSystemService(Activity.WINDOW_SERVICE);
         int rotation = manager.getDefaultDisplay().getRotation();
 
-        int columnsCount = 2;
+        int columnsCount;
         if (AndroidUtilities.isTablet()) {
             columnsCount = 3;
         } else {
@@ -993,7 +1031,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                                 ((PhotoPickerPhotoCell) v.getParent()).checkBox.setChecked(selectedPhotos.containsKey(photoEntry.imageId), true);
                             } else {
                                 AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus());
-                                MediaController.SearchImage photoEntry = null;
+                                MediaController.SearchImage photoEntry;
                                 if (searchResult.isEmpty() && lastSearchString == null) {
                                     photoEntry = recentImages.get((Integer)((View)v.getParent()).getTag());
                                 } else {
@@ -1019,7 +1057,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                 BackupImageView imageView = ((PhotoPickerPhotoCell) view).photoImage;
                 imageView.setTag(i);
                 view.setTag(i);
-                boolean showing = false;
+                boolean showing;
                 imageView.setOrientation(0, true);
 
                 if (selectedAlbum != null) {
@@ -1028,14 +1066,18 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                         imageView.setImage(photoEntry.thumbPath, null, mContext.getResources().getDrawable(R.drawable.nophotos));
                     } else if (photoEntry.path != null) {
                         imageView.setOrientation(photoEntry.orientation, true);
-                        imageView.setImage("thumb://" + photoEntry.imageId + ":" + photoEntry.path, null, mContext.getResources().getDrawable(R.drawable.nophotos));
+                        if (photoEntry.isVideo) {
+                            imageView.setImage("vthumb://" + photoEntry.imageId + ":" + photoEntry.path, null, mContext.getResources().getDrawable(R.drawable.nophotos));
+                        } else {
+                            imageView.setImage("thumb://" + photoEntry.imageId + ":" + photoEntry.path, null, mContext.getResources().getDrawable(R.drawable.nophotos));
+                        }
                     } else {
                         imageView.setImageResource(R.drawable.nophotos);
                     }
                     cell.checkBox.setChecked(selectedPhotos.containsKey(photoEntry.imageId), false);
                     showing = PhotoViewer.getInstance().isShowingImage(photoEntry.path);
                 } else {
-                    MediaController.SearchImage photoEntry = null;
+                    MediaController.SearchImage photoEntry;
                     if (searchResult.isEmpty() && lastSearchString == null) {
                         photoEntry = recentImages.get(i);
                     } else {
@@ -1051,7 +1093,7 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                     cell.checkBox.setChecked(selectedWebPhotos.containsKey(photoEntry.id), false);
                     showing = PhotoViewer.getInstance().isShowingImage(photoEntry.thumbUrl);
                 }
-                imageView.getImageReceiver().setVisible(!showing, false);
+                imageView.getImageReceiver().setVisible(!showing, true);
                 cell.checkBox.setVisibility(singlePhoto || showing ? View.GONE : View.VISIBLE);
             } else if (viewType == 1) {
                 if (view == null) {

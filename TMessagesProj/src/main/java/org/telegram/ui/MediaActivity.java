@@ -11,6 +11,7 @@ package org.telegram.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -51,6 +52,8 @@ import org.telegram.messenger.TLObject;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.MessageObject;
 import org.telegram.android.NotificationCenter;
+
+import me.ttalk.sdk.theme.ThemeManager;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.ActionBarMenu;
@@ -59,8 +62,8 @@ import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Adapters.BaseSectionsAdapter;
-import org.telegram.ui.AnimationCompat.AnimatorSetProxy;
-import org.telegram.ui.AnimationCompat.ObjectAnimatorProxy;
+import org.telegram.android.AnimationCompat.AnimatorSetProxy;
+import org.telegram.android.AnimationCompat.ObjectAnimatorProxy;
 import org.telegram.ui.Cells.GreySectionCell;
 import org.telegram.ui.Cells.LoadingCell;
 import org.telegram.ui.Cells.SharedDocumentCell;
@@ -68,6 +71,7 @@ import org.telegram.ui.Cells.SharedMediaSectionCell;
 import org.telegram.ui.Cells.SharedPhotoVideoCell;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SectionsListView;
 
 import java.io.File;
@@ -217,7 +221,12 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setTitle("");
         actionBar.setAllowOverlayTitle(false);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -278,7 +287,7 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
                         }
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                    showAlertDialog(builder);
+                    showDialog(builder.create());
                 } else if (id == forward) {
                     Bundle args = new Bundle();
                     args.putBoolean("onlySelect", true);
@@ -377,8 +386,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         dropDownContainer.addSubItem(files_item, LocaleController.getString("DocumentsTitle", R.string.DocumentsTitle), 0);
         actionBar.addView(dropDownContainer);
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) dropDownContainer.getLayoutParams();
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
         layoutParams.rightMargin = AndroidUtilities.dp(40);
         layoutParams.leftMargin = AndroidUtilities.isTablet() ? AndroidUtilities.dp(64) : AndroidUtilities.dp(56);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
@@ -403,8 +412,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         dropDown.setPadding(0, 0, AndroidUtilities.dp(10), 0);
         dropDownContainer.addView(dropDown);
         layoutParams = (FrameLayout.LayoutParams) dropDown.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.leftMargin = AndroidUtilities.dp(16);
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         dropDown.setLayoutParams(layoutParams);
@@ -431,7 +440,7 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         LinearLayout.LayoutParams layoutParams1 = (LinearLayout.LayoutParams) selectedMessagesCountTextView.getLayoutParams();
         layoutParams1.weight = 1;
         layoutParams1.width = 0;
-        layoutParams1.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams1.height = LayoutHelper.MATCH_PARENT;
         selectedMessagesCountTextView.setLayoutParams(layoutParams1);
 
         if ((int) dialog_id != 0) {
@@ -453,8 +462,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         listView.setClipToPadding(false);
         frameLayout.addView(listView);
         layoutParams = (FrameLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.gravity = Gravity.TOP;
         listView.setLayoutParams(layoutParams);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -518,8 +527,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         emptyView.setBackgroundColor(0xfff0f0f0);
         frameLayout.addView(emptyView);
         layoutParams = (FrameLayout.LayoutParams) emptyView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         emptyView.setLayoutParams(layoutParams);
         emptyView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -531,8 +540,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         emptyImageView = new ImageView(context);
         emptyView.addView(emptyImageView);
         layoutParams1 = (LinearLayout.LayoutParams) emptyImageView.getLayoutParams();
-        layoutParams1.width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams1.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         emptyImageView.setLayoutParams(layoutParams1);
 
         emptyTextView = new TextView(context);
@@ -543,8 +552,8 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         emptyView.addView(emptyTextView);
         layoutParams1 = (LinearLayout.LayoutParams) emptyTextView.getLayoutParams();
         layoutParams1.topMargin = AndroidUtilities.dp(24);
-        layoutParams1.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.gravity = Gravity.CENTER;
         emptyTextView.setLayoutParams(layoutParams1);
 
@@ -555,15 +564,15 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
         progressView.setBackgroundColor(0xfff0f0f0);
         frameLayout.addView(progressView);
         layoutParams = (FrameLayout.LayoutParams) progressView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         progressView.setLayoutParams(layoutParams);
 
         ProgressBar progressBar = new ProgressBar(context);
         progressView.addView(progressBar);
         layoutParams1 = (LinearLayout.LayoutParams) progressBar.getLayoutParams();
-        layoutParams1.width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams1.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         progressBar.setLayoutParams(layoutParams1);
 
         switchToCurrentSelectedMode();
@@ -937,7 +946,7 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
                                 builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
                                 builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
                                 builder.setMessage(LocaleController.formatString("NoHandleAppInstalled", R.string.NoHandleAppInstalled, message.messageOwner.media.document.mime_type));
-                                showAlertDialog(builder);
+                                showDialog(builder.create());
                             }
                         }
                     } else if (!cell.isLoading()) {
@@ -1139,7 +1148,7 @@ public class MediaActivity extends BaseFragment implements NotificationCenter.No
                     MessageObject messageObject = messageObjects.get(0);
                     ((SharedMediaSectionCell) convertView).setText(LocaleController.formatterMonthYear.format((long) messageObject.messageOwner.date * 1000).toUpperCase());
                 } else {
-                    SharedPhotoVideoCell cell = null;
+                    SharedPhotoVideoCell cell;
                     if (convertView == null) {
                         if (!cellCache.isEmpty()) {
                             convertView = cellCache.get(0);

@@ -14,6 +14,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
@@ -27,6 +28,8 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.ContactsController;
 import org.telegram.android.LocaleController;
@@ -35,7 +38,6 @@ import org.telegram.android.NotificationCenter;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 import org.telegram.messenger.RPCRequest;
 import org.telegram.messenger.TLObject;
 import org.telegram.messenger.TLRPC;
@@ -46,6 +48,7 @@ import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
+import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
@@ -100,7 +103,14 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
+
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("PrivacyLastSeen", R.string.PrivacyLastSeen));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -128,7 +138,7 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
                                 }
                             });
                             builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                            showAlertDialog(builder);
+                            showDialog(builder.create());
                             return;
                         }
                     }
@@ -138,7 +148,13 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+
+        Drawable doneDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_done");
+        if (doneDrawable != null){
+            doneButton = menu.addItemWithWidthRemote(done_button, doneDrawable, AndroidUtilities.dp(56));
+        }else {
+            doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+        }
         doneButton.setVisibility(View.GONE);
 
         listAdapter = new ListAdapter(context);
@@ -154,8 +170,8 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
         listView.setDrawSelectorOnTop(true);
         frameLayout.addView(listView);
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.gravity = Gravity.TOP;
         listView.setLayoutParams(layoutParams);
         listView.setAdapter(listAdapter);
@@ -178,7 +194,7 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
                     currentType = newType;
                     updateRows();
                 } else if (i == neverShareRow || i == alwaysShareRow) {
-                    ArrayList<Integer> createFromArray = null;
+                    ArrayList<Integer> createFromArray;
                     if (i == neverShareRow) {
                         createFromArray = currentMinus;
                     } else {
@@ -322,7 +338,7 @@ public class LastSeenActivity extends BaseFragment implements NotificationCenter
         builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
         builder.setMessage(LocaleController.getString("PrivacyFloodControlError", R.string.PrivacyFloodControlError));
         builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
-        showAlertDialog(builder);
+        showDialog(builder.create());
     }
 
     private void checkPrivacy() {

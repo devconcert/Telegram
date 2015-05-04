@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,13 +21,16 @@ import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
+import org.telegram.messenger.ApplicationLoader;
+import me.ttalk.sdk.ServiceAgent;
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.ContactsController;
 import org.telegram.android.LocaleController;
 import org.telegram.android.NotificationCenter;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 import org.telegram.messenger.RPCRequest;
 import org.telegram.messenger.TLObject;
 import org.telegram.messenger.TLRPC;
@@ -37,7 +41,7 @@ import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
-
+import org.telegram.ui.Components.LayoutHelper;
 import java.util.ArrayList;
 
 public class PrivacySettingsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
@@ -70,8 +74,8 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         lastSeenRow = rowCount++;
         lastSeenDetailRow = rowCount++;
         securitySectionRow = rowCount++;
-        passcodeRow = rowCount++;
         passwordRow = rowCount++;
+        passcodeRow = rowCount++;
         sessionsRow = rowCount++;
         sessionsDetailRow = rowCount++;
         deleteAccountSectionRow = rowCount++;
@@ -91,7 +95,13 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
+
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("PrivacySettings", R.string.PrivacySettings));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -114,21 +124,18 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
         listView.setDividerHeight(0);
         listView.setVerticalScrollBarEnabled(false);
         listView.setDrawSelectorOnTop(true);
-        frameLayout.addView(listView);
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.gravity = Gravity.TOP;
-        listView.setLayoutParams(layoutParams);
+        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         listView.setAdapter(listAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                 if (i == blockedRow) {
+                    ServiceAgent.getInstance().logEvent("Settings.Privacy", "BlockedUsers");
                     presentFragment(new BlockedUsersActivity());
                 } else if (i == sessionsRow) {
                     presentFragment(new SessionsActivity());
                 } else if (i == deleteAccountRow) {
+                    ServiceAgent.getInstance().logEvent("Settings.Privacy", "DeleteAccount");
                     if (getParentActivity() == null) {
                         return;
                     }
@@ -183,10 +190,12 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         }
                     });
                     builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                    showAlertDialog(builder);
+                    showDialog(builder.create());
                 } else if (i == lastSeenRow) {
+                    ServiceAgent.getInstance().logEvent("Settings.Privacy", "LastSeen");
                     presentFragment(new LastSeenActivity());
                 } else if (i == passwordRow) {
+//                  ServiceAgent.getInstance().logEvent("Settings.Privacy", "AccountPassword");
                     presentFragment(new TwoStepVerificationActivity(0));
                 } else if (i == passcodeRow) {
                     if (UserConfig.passcodeHash.length() > 0) {

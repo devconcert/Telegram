@@ -8,6 +8,7 @@
 
 package org.telegram.android;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -16,6 +17,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
@@ -44,6 +47,7 @@ import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.view.View;
 
+import org.telegram.messenger.R;
 import org.telegram.android.video.InputSurface;
 import org.telegram.android.video.MP4Builder;
 import org.telegram.android.video.Mp4Movie;
@@ -52,7 +56,6 @@ import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
@@ -117,17 +120,27 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             MediaStore.Images.Media.ORIENTATION
     };
 
+    private static final String[] projectionVideo = {
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.BUCKET_ID,
+            MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Video.Media.DATA,
+            MediaStore.Video.Media.DATE_TAKEN
+    };
+
     public static class AlbumEntry {
         public int bucketId;
         public String bucketName;
         public PhotoEntry coverPhoto;
         public ArrayList<PhotoEntry> photos = new ArrayList<>();
         public HashMap<Integer, PhotoEntry> photosByIds = new HashMap<>();
+        public boolean isVideo;
 
-        public AlbumEntry(int bucketId, String bucketName, PhotoEntry coverPhoto) {
+        public AlbumEntry(int bucketId, String bucketName, PhotoEntry coverPhoto, boolean isVideo) {
             this.bucketId = bucketId;
             this.bucketName = bucketName;
             this.coverPhoto = coverPhoto;
+            this.isVideo = isVideo;
         }
 
         public void addPhoto(PhotoEntry photoEntry) {
@@ -144,13 +157,16 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         public int orientation;
         public String thumbPath;
         public String imagePath;
+        public boolean isVideo;
+        public CharSequence caption;
 
-        public PhotoEntry(int bucketId, int imageId, long dateTaken, String path, int orientation) {
+        public PhotoEntry(int bucketId, int imageId, long dateTaken, String path, int orientation, boolean isVideo) {
             this.bucketId = bucketId;
             this.imageId = imageId;
             this.dateTaken = dateTaken;
             this.path = path;
             this.orientation = orientation;
+            this.isVideo = isVideo;
         }
     }
 
@@ -167,6 +183,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         public int date;
         public String thumbPath;
         public String imagePath;
+        public CharSequence caption;
     }
 
     public final static String MIME_TYPE = "video/avc";
@@ -177,6 +194,8 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
     private final static int PROCESSOR_TYPE_SEC = 4;
     private final static int PROCESSOR_TYPE_TI = 5;
     private final Object videoConvertSync = new Object();
+
+    private HashMap<Long, Long> typingTimes = new HashMap<>();
 
     private SensorManager sensorManager;
     private Sensor proximitySensor;
@@ -227,6 +246,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
     private Timer progressTimer = null;
     private final Object progressTimerSync = new Object();
     private boolean useFrontSpeaker;
+    private int buffersWrited;
 
     private AudioRecord audioRecorder = null;
     private TLRPC.TL_audio recordingAudio = null;
@@ -255,7 +275,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         @Override
         public void run() {
             if (audioRecorder != null) {
-                ByteBuffer buffer = null;
+                ByteBuffer buffer;
                 if (!recordBuffers.isEmpty()) {
                     buffer = recordBuffers.get(0);
                     recordBuffers.remove(0);
@@ -455,7 +475,8 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                     MediaStore.Images.ImageColumns.DATE_TAKEN,
                     MediaStore.Images.ImageColumns.TITLE,
                     MediaStore.Images.ImageColumns.WIDTH,
-                    MediaStore.Images.ImageColumns.HEIGHT
+                    MediaStore.Images.ImageColumns.HEIGHT,
+                    MediaStore.Images.ImageColumns._ID
             };
         } else {
             mediaProjections = new String[] {
@@ -463,7 +484,8 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                     MediaStore.Images.ImageColumns.DISPLAY_NAME,
                     MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
                     MediaStore.Images.ImageColumns.DATE_TAKEN,
-                    MediaStore.Images.ImageColumns.TITLE
+                    MediaStore.Images.ImageColumns.TITLE,
+                    MediaStore.Images.ImageColumns._ID
             };
         }
     }
@@ -550,6 +572,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         videoDownloadQueue.clear();
         downloadQueueKeys.clear();
         videoConvertQueue.clear();
+        typingTimes.clear();
         cancelVideoConvert(null);
     }
 
@@ -674,7 +697,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             if (downloadObject.object instanceof TLRPC.Audio) {
                 FileLoader.getInstance().loadFile((TLRPC.Audio)downloadObject.object, false);
             } else if (downloadObject.object instanceof TLRPC.PhotoSize) {
-                FileLoader.getInstance().loadFile((TLRPC.PhotoSize)downloadObject.object, false);
+                FileLoader.getInstance().loadFile((TLRPC.PhotoSize)downloadObject.object, null, false);
             } else if (downloadObject.object instanceof TLRPC.Video) {
                 FileLoader.getInstance().loadFile((TLRPC.Video)downloadObject.object, false);
             } else if (downloadObject.object instanceof TLRPC.Document) {
@@ -710,7 +733,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         if (downloadObject != null) {
             downloadQueueKeys.remove(fileName);
             if (state == 0 || state == 2) {
-                MessagesStorage.getInstance().removeFromDownloadQueue(downloadObject.id, downloadObject.type, state != 0);
+                MessagesStorage.getInstance().removeFromDownloadQueue(downloadObject.id, downloadObject.type, false /*state != 0*/);
             }
             if (downloadObject.type == AUTODOWNLOAD_MASK_PHOTO) {
                 photoDownloadQueue.remove(downloadObject);
@@ -769,11 +792,12 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         ApplicationLoader.applicationHandler.postDelayed(stopMediaObserverRunnable, 5000);
     }
 
-    public void processMediaObserver(Uri uri) {
+    public void processMediaObserver(final Uri uri) {
         try {
             Point size = AndroidUtilities.getRealScreenSize();
 
             Cursor cursor = ApplicationLoader.applicationContext.getContentResolver().query(uri, mediaProjections, null, null, "date_added DESC LIMIT 1");
+            int id = 0;
             final ArrayList<Long> screenshotDates = new ArrayList<>();
             if (cursor != null) {
                 while (cursor.moveToNext()) {
@@ -789,6 +813,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                         photoW = cursor.getInt(5);
                         photoH = cursor.getInt(6);
                     }
+                    id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
                     if (data != null && data.toLowerCase().contains("screenshot") ||
                             display_name != null && display_name.toLowerCase().contains("screenshot") ||
                             album_name != null && album_name.toLowerCase().contains("screenshot") ||
@@ -812,11 +837,12 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                 cursor.close();
             }
             if (!screenshotDates.isEmpty()) {
+                final int screen_id = id;
                 AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override
                     public void run() {
                         NotificationCenter.getInstance().postNotificationName(NotificationCenter.screenshotTook);
-                        checkScreenshots(screenshotDates);
+                        checkScreenshots(screenshotDates, uri, screen_id);
                     }
                 });
             }
@@ -825,7 +851,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         }
     }
 
-    private void checkScreenshots(ArrayList<Long> dates) {
+    private void checkScreenshots(ArrayList<Long> dates, Uri uri, int id) {
         if (dates == null || dates.isEmpty() || lastSecretChatEnterTime == 0 || lastSecretChat == null || !(lastSecretChat instanceof TLRPC.TL_encryptedChat)) {
             return;
         }
@@ -839,6 +865,9 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             if (date >= lastSecretChatEnterTime) {
                 if (lastSecretChatLeaveTime == 0 || date <= lastSecretChatLeaveTime + dt) {
                     lastMediaCheckTime = Math.max(lastMediaCheckTime, date);
+                    Uri _uri = ContentUris.withAppendedId(uri, id);
+                    ContentResolver resolver = ApplicationLoader.applicationContext.getContentResolver();
+                    resolver.delete(_uri, null, null);
                     send = true;
                 }
             }
@@ -975,6 +1004,29 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             }
             listenerInProgress = false;
             processLaterArrays();
+            try {
+                ArrayList<SendMessagesHelper.DelayedMessage> delayedMessages = SendMessagesHelper.getInstance().getDelayedMessages(fileName);
+                if (delayedMessages != null) {
+                    for (SendMessagesHelper.DelayedMessage delayedMessage : delayedMessages) {
+                        if (delayedMessage.encryptedChat == null) {
+                            long dialog_id = delayedMessage.obj.getDialogId();
+                            Long lastTime = typingTimes.get(dialog_id);
+                            if (lastTime == null || lastTime + 4000 < System.currentTimeMillis()) {
+                                if (delayedMessage.videoLocation != null) {
+                                    MessagesController.getInstance().sendTyping(dialog_id, 5, 0);
+                                } else if (delayedMessage.documentLocation != null) {
+                                    MessagesController.getInstance().sendTyping(dialog_id, 3, 0);
+                                } else if (delayedMessage.location != null) {
+                                    MessagesController.getInstance().sendTyping(dialog_id, 4, 0);
+                                }
+                                typingTimes.put(dialog_id, System.currentTimeMillis());
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                FileLog.e("tmessages", e);
+            }
         } else if (id == NotificationCenter.messagesDeleted) {
             if (playingMessageObject != null) {
                 ArrayList<Integer> markAsDeletedMessages = (ArrayList<Integer>)args[0];
@@ -1066,10 +1118,12 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                     } catch (Exception e) {
                         FileLog.e("tmessages", e);
                     }
+                    buffersWrited++;
 
                     if (count > 0) {
                         final long pcm = buffer.pcmOffset;
-                        final int marker = buffer.finished == 1 ? buffer.size : -1;
+                        final int marker = buffer.finished == 1 ? count : -1;
+                        final int finalBuffersWrited = buffersWrited;
                         AndroidUtilities.runOnUIThread(new Runnable() {
                             @Override
                             public void run() {
@@ -1077,6 +1131,9 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                                 if (marker != -1) {
                                     if (audioTrackPlayer != null) {
                                         audioTrackPlayer.setNotificationMarkerPosition(1);
+                                    }
+                                    if (finalBuffersWrited == 1) {
+                                        clenupPlayer(true);
                                     }
                                 }
                             }
@@ -1100,12 +1157,17 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         });
     }
 
+    private boolean isNearToSensor(float value) {
+        return value < 5.0f && value != proximitySensor.getMaximumRange();
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (proximitySensor != null && audioTrackPlayer == null && audioPlayer == null || isPaused || (useFrontSpeaker == (event.values[0] < proximitySensor.getMaximumRange() / 10))) {
+        FileLog.e("tmessages", "proximity changed to " + event.values[0]);
+        if (proximitySensor != null && audioTrackPlayer == null && audioPlayer == null || isPaused || (useFrontSpeaker == isNearToSensor(event.values[0]))) {
             return;
         }
-        boolean newValue = event.values[0] < proximitySensor.getMaximumRange() / 10;
+        boolean newValue = isNearToSensor(event.values[0]);
         try {
             if (newValue && NotificationsController.getInstance().audioManager.isWiredHeadsetOn()) {
                 return;
@@ -1190,6 +1252,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             }
             stopProgressTimer();
             lastProgress = 0;
+            buffersWrited = 0;
             isPaused = false;
             MessageObject lastFile = playingMessageObject;
             playingMessageObject.audioProgress = 0.0f;
@@ -1424,6 +1487,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         if (audioTrackPlayer == null && audioPlayer == null || messageObject == null || playingMessageObject == null || playingMessageObject != null && playingMessageObject.getId() != messageObject.getId()) {
             return false;
         }
+        stopProgressTimer();
         try {
             if (audioPlayer != null) {
                 audioPlayer.pause();
@@ -1440,11 +1504,12 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
     }
 
     public boolean resumeAudio(MessageObject messageObject) {
-        startProximitySensor();
         if (audioTrackPlayer == null && audioPlayer == null || messageObject == null || playingMessageObject == null || playingMessageObject != null && playingMessageObject.getId() != messageObject.getId()) {
             return false;
         }
+        startProximitySensor();
         try {
+            startProgressTimer();
             if (audioPlayer != null) {
                 audioPlayer.start();
             } else if (audioTrackPlayer != null) {
@@ -1666,9 +1731,9 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                     try {
                         File destFile = null;
                         if (type == 0) {
-                            destFile = Utilities.generatePicturePath();
+                            destFile = AndroidUtilities.generatePicturePath();
                         } else if (type == 1) {
-                            destFile = Utilities.generateVideoPath();
+                            destFile = AndroidUtilities.generateVideoPath();
                         } else if (type == 2) {
                             File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                             destFile = new File(f, name);
@@ -1685,8 +1750,8 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                             source = new FileInputStream(sourceFile).getChannel();
                             destination = new FileOutputStream(destFile).getChannel();
                             long size = source.size();
-                            for (long a = 0; a < size; a += 1024) {
-                                destination.transferFrom(source, a, Math.min(1024, size - a));
+                            for (long a = 0; a < size; a += 4096) {
+                                destination.transferFrom(source, a, Math.min(4096, size - a));
                                 if (finalProgress != null) {
                                     if (lastProgress <= System.currentTimeMillis() - 500) {
                                         lastProgress = System.currentTimeMillis();
@@ -1717,7 +1782,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                         }
 
                         if (result && (type == 0 || type == 1)) {
-                            Utilities.addMediaToGallery(Uri.fromFile(destFile));
+                            AndroidUtilities.addMediaToGallery(Uri.fromFile(destFile));
                         }
                     } catch (Exception e) {
                         FileLog.e("tmessages", e);
@@ -1970,10 +2035,12 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             @Override
             public void run() {
                 final ArrayList<AlbumEntry> albumsSorted = new ArrayList<>();
+                final ArrayList<AlbumEntry> videoAlbumsSorted = new ArrayList<>();
                 HashMap<Integer, AlbumEntry> albums = new HashMap<>();
                 AlbumEntry allPhotosAlbum = null;
                 String cameraFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + "/" + "Camera/";
                 Integer cameraAlbumId = null;
+                Integer cameraAlbumVideoId = null;
 
                 Cursor cursor = null;
                 try {
@@ -1998,10 +2065,10 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                                 continue;
                             }
 
-                            PhotoEntry photoEntry = new PhotoEntry(bucketId, imageId, dateTaken, path, orientation);
+                            PhotoEntry photoEntry = new PhotoEntry(bucketId, imageId, dateTaken, path, orientation, false);
 
                             if (allPhotosAlbum == null) {
-                                allPhotosAlbum = new AlbumEntry(0, LocaleController.getString("AllPhotos", R.string.AllPhotos), photoEntry);
+                                allPhotosAlbum = new AlbumEntry(0, LocaleController.getString("AllPhotos", R.string.AllPhotos), photoEntry, false);
                                 albumsSorted.add(0, allPhotosAlbum);
                             }
                             if (allPhotosAlbum != null) {
@@ -2010,7 +2077,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
 
                             AlbumEntry albumEntry = albums.get(bucketId);
                             if (albumEntry == null) {
-                                albumEntry = new AlbumEntry(bucketId, bucketName, photoEntry);
+                                albumEntry = new AlbumEntry(bucketId, bucketName, photoEntry, false);
                                 albums.put(bucketId, albumEntry);
                                 if (cameraAlbumId == null && cameraFolder != null && path != null && path.startsWith(cameraFolder)) {
                                     albumsSorted.add(0, albumEntry);
@@ -2034,11 +2101,72 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                         }
                     }
                 }
+
+                try {
+                    albums.clear();
+                    allPhotosAlbum = null;
+                    cursor = MediaStore.Images.Media.query(ApplicationLoader.applicationContext.getContentResolver(), MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projectionVideo, "", null, MediaStore.Video.Media.DATE_TAKEN + " DESC");
+                    if (cursor != null) {
+                        int imageIdColumn = cursor.getColumnIndex(MediaStore.Video.Media._ID);
+                        int bucketIdColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID);
+                        int bucketNameColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME);
+                        int dataColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATA);
+                        int dateColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN);
+
+                        while (cursor.moveToNext()) {
+                            int imageId = cursor.getInt(imageIdColumn);
+                            int bucketId = cursor.getInt(bucketIdColumn);
+                            String bucketName = cursor.getString(bucketNameColumn);
+                            String path = cursor.getString(dataColumn);
+                            long dateTaken = cursor.getLong(dateColumn);
+
+                            if (path == null || path.length() == 0) {
+                                continue;
+                            }
+
+                            PhotoEntry photoEntry = new PhotoEntry(bucketId, imageId, dateTaken, path, 0, true);
+
+                            if (allPhotosAlbum == null) {
+                                allPhotosAlbum = new AlbumEntry(0, LocaleController.getString("AllVideo", R.string.AllVideo), photoEntry, true);
+                                videoAlbumsSorted.add(0, allPhotosAlbum);
+                            }
+                            if (allPhotosAlbum != null) {
+                                allPhotosAlbum.addPhoto(photoEntry);
+                            }
+
+                            AlbumEntry albumEntry = albums.get(bucketId);
+                            if (albumEntry == null) {
+                                albumEntry = new AlbumEntry(bucketId, bucketName, photoEntry, true);
+                                albums.put(bucketId, albumEntry);
+                                if (cameraAlbumVideoId == null && cameraFolder != null && path != null && path.startsWith(cameraFolder)) {
+                                    videoAlbumsSorted.add(0, albumEntry);
+                                    cameraAlbumVideoId = bucketId;
+                                } else {
+                                    videoAlbumsSorted.add(albumEntry);
+                                }
+                            }
+
+                            albumEntry.addPhoto(photoEntry);
+                        }
+                    }
+                } catch (Exception e) {
+                    FileLog.e("tmessages", e);
+                } finally {
+                    if (cursor != null) {
+                        try {
+                            cursor.close();
+                        } catch (Exception e) {
+                            FileLog.e("tmessages", e);
+                        }
+                    }
+                }
+
                 final Integer cameraAlbumIdFinal = cameraAlbumId;
+                final Integer cameraAlbumVideoIdFinal = cameraAlbumVideoId;
                 AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override
                     public void run() {
-                        NotificationCenter.getInstance().postNotificationName(NotificationCenter.albumsDidLoaded, guid, albumsSorted, cameraAlbumIdFinal);
+                        NotificationCenter.getInstance().postNotificationName(NotificationCenter.albumsDidLoaded, guid, albumsSorted, cameraAlbumIdFinal, videoAlbumsSorted, cameraAlbumVideoIdFinal);
                     }
                 });
             }
@@ -2082,6 +2210,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         }
     }
 
+    @SuppressLint("NewApi")
     public static MediaCodecInfo selectCodec(String mimeType) {
         int numCodecs = MediaCodecList.getCodecCount();
         MediaCodecInfo lastCodecInfo = null;
@@ -2118,6 +2247,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
         }
     }
 
+    @SuppressLint("NewApi")
     public static int selectColorFormat(MediaCodecInfo codecInfo, String mimeType) {
         MediaCodecInfo.CodecCapabilities capabilities = codecInfo.getCapabilitiesForType(mimeType);
         int lastColorFormat = 0;
@@ -2270,7 +2400,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
     }
 
     private void checkConversionCanceled() throws Exception {
-        boolean cancelConversion = false;
+        boolean cancelConversion;
         synchronized (videoConvertSync) {
             cancelConversion = cancelCurrentVideoConversion;
         }
@@ -2281,15 +2411,15 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
 
     @TargetApi(16)
     private boolean convertVideo(final MessageObject messageObject) {
-        String videoPath = messageObject.messageOwner.videoEditedInfo.originalPath;
-        long startTime = messageObject.messageOwner.videoEditedInfo.startTime;
-        long endTime = messageObject.messageOwner.videoEditedInfo.endTime;
-        int resultWidth = messageObject.messageOwner.videoEditedInfo.resultWidth;
-        int resultHeight = messageObject.messageOwner.videoEditedInfo.resultHeight;
-        int rotationValue = messageObject.messageOwner.videoEditedInfo.rotationValue;
-        int originalWidth = messageObject.messageOwner.videoEditedInfo.originalWidth;
-        int originalHeight = messageObject.messageOwner.videoEditedInfo.originalHeight;
-        int bitrate = messageObject.messageOwner.videoEditedInfo.bitrate;
+        String videoPath = messageObject.videoEditedInfo.originalPath;
+        long startTime = messageObject.videoEditedInfo.startTime;
+        long endTime = messageObject.videoEditedInfo.endTime;
+        int resultWidth = messageObject.videoEditedInfo.resultWidth;
+        int resultHeight = messageObject.videoEditedInfo.resultHeight;
+        int rotationValue = messageObject.videoEditedInfo.rotationValue;
+        int originalWidth = messageObject.videoEditedInfo.originalWidth;
+        int originalHeight = messageObject.videoEditedInfo.originalHeight;
+        int bitrate = messageObject.videoEditedInfo.bitrate;
         int rotateRender = 0;
         File cacheFile = new File(messageObject.messageOwner.attachPath);
 
@@ -2352,7 +2482,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                 checkConversionCanceled();
 
                 if (resultWidth != originalWidth || resultHeight != originalHeight) {
-                    int videoIndex = -5;
+                    int videoIndex;
                     videoIndex = selectTrack(extractor, false);
                     if (videoIndex >= 0) {
                         MediaCodec decoder = null;
@@ -2368,7 +2498,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                             int swapUV = 0;
                             int videoTrackIndex = -5;
 
-                            int colorFormat = 0;
+                            int colorFormat;
                             int processorType = PROCESSOR_TYPE_OTHER;
                             String manufacturer = Build.MANUFACTURER.toLowerCase();
                             if (Build.VERSION.SDK_INT < 18) {
@@ -2487,7 +2617,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                                     if (index == videoIndex) {
                                         int inputBufIndex = decoder.dequeueInputBuffer(TIMEOUT_USEC);
                                         if (inputBufIndex >= 0) {
-                                            ByteBuffer inputBuf = null;
+                                            ByteBuffer inputBuf;
                                             if (Build.VERSION.SDK_INT < 21) {
                                                 inputBuf = decoderInputBuffers[inputBufIndex];
                                             } else {
@@ -2533,7 +2663,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                                     } else if (encoderStatus < 0) {
                                         throw new RuntimeException("unexpected result from encoder.dequeueOutputBuffer: " + encoderStatus);
                                     } else {
-                                        ByteBuffer encodedData = null;
+                                        ByteBuffer encodedData;
                                         if (Build.VERSION.SDK_INT < 21) {
                                             encodedData = encoderOutputBuffers[encoderStatus];
                                         } else {
@@ -2595,7 +2725,7 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                                         } else if (decoderStatus < 0) {
                                             throw new RuntimeException("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
                                         } else {
-                                            boolean doRender = false;
+                                            boolean doRender;
                                             if (Build.VERSION.SDK_INT >= 18) {
                                                 doRender = info.size != 0;
                                             } else {
@@ -2672,21 +2802,17 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
 
                         if (outputSurface != null) {
                             outputSurface.release();
-                            outputSurface = null;
                         }
                         if (inputSurface != null) {
                             inputSurface.release();
-                            inputSurface = null;
                         }
                         if (decoder != null) {
                             decoder.stop();
                             decoder.release();
-                            decoder = null;
                         }
                         if (encoder != null) {
                             encoder.stop();
                             encoder.release();
-                            encoder = null;
                         }
 
                         checkConversionCanceled();
@@ -2706,7 +2832,6 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
             } finally {
                 if (extractor != null) {
                     extractor.release();
-                    extractor = null;
                 }
                 if (mediaMuxer != null) {
                     try {
@@ -2714,7 +2839,6 @@ public class MediaController implements NotificationCenter.NotificationCenterDel
                     } catch (Exception e) {
                         FileLog.e("tmessages", e);
                     }
-                    mediaMuxer = null;
                 }
                 FileLog.e("tmessages", "time = " + (System.currentTimeMillis() - time));
             }

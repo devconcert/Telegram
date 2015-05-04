@@ -8,3 +8,7 @@ local.properties
 gradle.properties
 
 TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+appcompat/
+EmoticonSDK/
+TTalkSDK/
+.DS_Store

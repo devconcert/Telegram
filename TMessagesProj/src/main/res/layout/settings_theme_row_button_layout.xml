@@ -1,0 +1,63 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:layout_gravity="left"
+    android:id="@+id/fl_settings_theme">
+    <LinearLayout
+        android:layout_width="fill_parent" android:layout_height="150dp"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/theme_thumb"
+            android:layout_width="100dp" android:layout_height="wrap_content"
+            android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+            android:src="@drawable/background_intro" />
+        <LinearLayout
+            android:layout_width="fill_parent" android:layout_height="fill_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+            <TextView android:id="@+id/settings_row_text_title"
+                android:layout_width="fill_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+                android:layout_marginLeft="8dp" android:layout_marginRight="8dp"
+                android:text="Theme Title"
+                android:textSize="20dp"
+                android:textColor="#333333"
+                android:textStyle="bold"/>
+            <TextView android:id="@+id/settings_row_text_subtitle"
+                android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp" android:layout_marginRight="8dp"
+                android:text="Theme sub title"
+                android:textSize="15dp"
+                android:textColor="#333333"/>
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="70dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <Button android:id="@+id/btn_theme_apply"
+                    android:layout_width="match_parent" android:layout_height="40dp"
+                    android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="2dp" android:layout_marginRight="2dp"
+                    android:text="@string/theme_apply"
+                    android:textSize="18dp"
+                    android:textColor="#fff2ffff"
+                    android:background="@drawable/theme_button_background"
+                    android:layout_weight="1.0"/>
+
+                <Button android:id="@+id/btn_theme_delete"
+                    android:layout_width="match_parent" android:layout_height="40dp"
+                    android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="2dp" android:layout_marginRight="2dp"
+                    android:text="@string/theme_delete"
+                    android:textSize="18dp"
+                    android:textColor="#fff2ffff"
+                    android:background="@drawable/theme_button_delete_background"
+                    android:layout_weight="2.0"/>
+                </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+    <View android:id="@+id/settings_row_divider"
+        android:background="@color/divider"
+        android:layout_width="fill_parent" android:layout_height="1px"
+        android:layout_gravity="bottom"/>
+</FrameLayout>

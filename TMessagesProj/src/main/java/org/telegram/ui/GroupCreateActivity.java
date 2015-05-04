@@ -47,6 +47,9 @@ import org.telegram.android.ContactsController;
 import org.telegram.messenger.FileLog;
 import org.telegram.android.MessagesController;
 import org.telegram.android.NotificationCenter;
+import org.telegram.ui.Cells.GreySectionCell;
+import me.ttalk.sdk.ServiceAgent;
+import me.ttalk.sdk.theme.ThemeManager;
 import org.telegram.messenger.R;
 import org.telegram.ui.Adapters.ContactsAdapter;
 import org.telegram.ui.Adapters.SearchAdapter;
@@ -54,6 +57,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.UserCell;
+import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LetterSectionsListView;
 
 import java.util.ArrayList;
@@ -145,7 +149,12 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         searching = false;
         searchWas = false;
 
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setAllowOverlayTitle(true);
         if (isAlwaysShare) {
             actionBar.setTitle(LocaleController.getString("AlwaysShareWithTitle", R.string.AlwaysShareWithTitle));
@@ -160,8 +169,10 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
+                    ServiceAgent.getInstance().logEvent("GroupCreate.ActionBar", "Close");
                     finishFragment();
                 } else if (id == done_button) {
+                    ServiceAgent.getInstance().logEvent("GroupCreate.ActionBar", "Done");
                     if (selectedContacts.isEmpty()) {
                         return;
                     }
@@ -174,31 +185,47 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                         finishFragment();
                     } else {
                         Bundle args = new Bundle();
-                        args.putIntegerArrayList("result", result);
-                        args.putBoolean("broadcast", isBroadcast);
-                        presentFragment(new GroupCreateFinalActivity(args));
+                        if(result.size() == 1) {
+                            ServiceAgent.getInstance().logEvent("GroupCreate", "Chat");
+                            args.putInt("user_id", result.get(0));
+                            presentFragment(new ChatActivity(args), true);
+                        }else{
+                            ServiceAgent.getInstance().logEvent("GroupCreate", (isBroadcast ? "Broadcast" : "Groups"));
+                            args.putIntegerArrayList("result", result);
+                            args.putBoolean("broadcast", isBroadcast);
+                            presentFragment(new GroupCreateFinalActivity(args));
+                        }
                     }
                 }
             }
         });
         ActionBarMenu menu = actionBar.createMenu();
-        menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
-
+        Drawable doneDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_done");
+        if (doneDrawable != null){
+            menu.addItemWithWidthRemote(done_button, doneDrawable, AndroidUtilities.dp(56));
+        }else {
+            menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+        }
         searchListViewAdapter = new SearchAdapter(context, null, false);
         searchListViewAdapter.setCheckedMap(selectedContacts);
         searchListViewAdapter.setUseUserCell(true);
-        listViewAdapter = new ContactsAdapter(context, true, false, null);
+        listViewAdapter = new ContactsAdapter(context, true, false, null, false);
         listViewAdapter.setCheckedMap(selectedContacts);
 
         fragmentView = new LinearLayout(context);
         LinearLayout linearLayout = (LinearLayout) fragmentView;
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
+        if(isBroadcast) {
+            GreySectionCell sectionCell = new GreySectionCell(getParentActivity());
+            sectionCell.setText(LocaleController.getString("NewBroadcastSection", R.string.NewBroadcastSection).toUpperCase());
+            ((LinearLayout) fragmentView).addView(sectionCell);
+        }
         FrameLayout frameLayout = new FrameLayout(context);
         linearLayout.addView(frameLayout);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) frameLayout.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.TOP;
         frameLayout.setLayoutParams(layoutParams);
 
@@ -219,8 +246,8 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         AndroidUtilities.clearCursorDrawable(userSelectEditText);
         frameLayout.addView(userSelectEditText);
         FrameLayout.LayoutParams layoutParams1 = (FrameLayout.LayoutParams) userSelectEditText.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.MATCH_PARENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.leftMargin = AndroidUtilities.dp(10);
         layoutParams1.rightMargin = AndroidUtilities.dp(10);
         layoutParams1.gravity = Gravity.TOP;
@@ -325,8 +352,8 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         emptyTextLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.addView(emptyTextLayout);
         layoutParams = (LinearLayout.LayoutParams) emptyTextLayout.getLayoutParams();
-        layoutParams.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         emptyTextLayout.setLayoutParams(layoutParams);
         emptyTextLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -342,16 +369,16 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         emptyTextView.setText(LocaleController.getString("NoContacts", R.string.NoContacts));
         emptyTextLayout.addView(emptyTextView);
         layoutParams = (LinearLayout.LayoutParams) emptyTextView.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.weight = 0.5f;
         emptyTextView.setLayoutParams(layoutParams);
 
         FrameLayout frameLayout2 = new FrameLayout(context);
         emptyTextLayout.addView(frameLayout2);
         layoutParams = (LinearLayout.LayoutParams) frameLayout2.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         layoutParams.weight = 0.5f;
         frameLayout2.setLayoutParams(layoutParams);
 
@@ -369,13 +396,13 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
         }
         linearLayout.addView(listView);
         layoutParams = (LinearLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         listView.setLayoutParams(layoutParams);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TLRPC.User user = null;
+                TLRPC.User user;
                 if (searching && searchWas) {
                     user = searchListViewAdapter.getItem(i);
                 } else {
@@ -481,12 +508,7 @@ public class GroupCreateActivity extends BaseFragment implements NotificationCen
                 updateVisibleRows(mask);
             }
         } else if (id == NotificationCenter.chatDidCreated) {
-            AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
-                public void run() {
-                    removeSelfFromStack();
-                }
-            });
+            removeSelfFromStack();
         }
     }
 

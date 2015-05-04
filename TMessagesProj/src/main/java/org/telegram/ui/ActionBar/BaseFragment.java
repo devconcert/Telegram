@@ -9,22 +9,27 @@
 package org.telegram.ui.ActionBar;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.telegram.messenger.ApplicationLoader;
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 
 public class BaseFragment {
+
     private boolean isFinished = false;
-    protected AlertDialog visibleDialog = null;
+    protected Dialog visibleDialog = null;
 
     protected View fragmentView;
     protected ActionBarLayout parentLayout;
@@ -78,6 +83,33 @@ public class BaseFragment {
             if (parentLayout != null) {
                 actionBar = new ActionBar(parentLayout.getContext());
                 actionBar.parentFragment = this;
+
+                setRemoteTheme("actionbar_title_bg");
+            }
+        }
+    }
+
+    //@@ Custom Theme
+    private void setRemoteTheme(String text){
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable( text);
+        if (drawable == null){
+            try {
+                int theme_selected = ThemeManager.getInstance().getThemeColor();
+                actionBar.setBackgroundColor(theme_selected);
+            }catch(Exception e){
+                actionBar.setBackgroundColor(0xff54759e);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= 16) {
+                actionBar.setBackground(drawable);
+            } else {
+                actionBar.setBackgroundDrawable(drawable);
+            }
+
+            Drawable barDrawable = ThemeManager.getInstance().getRemoteResourceDrawable( "bar_selector");
+            if (barDrawable != null) {
+                actionBar.setItemsBackgroundDrawable(barDrawable);
+            }else{
                 actionBar.setBackgroundColor(0xff54759e);
                 actionBar.setItemsBackground(R.drawable.bar_selector);
             }
@@ -191,7 +223,11 @@ public class BaseFragment {
         }
     }
 
-    public void onOpenAnimationEnd() {
+    protected void onOpenAnimationEnd() {
+
+    }
+
+    protected void onOpenAnimationStart() {
 
     }
 
@@ -203,8 +239,8 @@ public class BaseFragment {
         return true;
     }
 
-    public AlertDialog showAlertDialog(AlertDialog.Builder builder) {
-        if (parentLayout == null || parentLayout.checkTransitionAnimation() || parentLayout.animationInProgress || parentLayout.startedTracking) {
+    public Dialog showDialog(Dialog dialog) {
+        if (parentLayout == null || parentLayout.animationInProgress || parentLayout.startedTracking || parentLayout.checkTransitionAnimation()) {
             return null;
         }
         try {
@@ -216,7 +252,7 @@ public class BaseFragment {
             FileLog.e("tmessages", e);
         }
         try {
-            visibleDialog = builder.show();
+            visibleDialog = dialog;
             visibleDialog.setCanceledOnTouchOutside(true);
             visibleDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
@@ -225,6 +261,7 @@ public class BaseFragment {
                     onDialogDismiss();
                 }
             });
+            visibleDialog.show();
             return visibleDialog;
         } catch (Exception e) {
             FileLog.e("tmessages", e);
@@ -234,5 +271,9 @@ public class BaseFragment {
 
     protected void onDialogDismiss() {
 
+    }
+
+    public void setVisibleDialog(Dialog dialog) {
+        visibleDialog = dialog;
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.telegram.messenger"
-    android:installLocation="auto">
+    android:installLocation="auto" xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.location.network" android:required="false" />
@@ -9,27 +9,28 @@
     <uses-feature android:name="android.hardware.LOCATION" android:required="false" />
 
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="org.telegram.messenger.permission.MAPS_RECEIVE"/>
-    <uses-permission android:name="org.telegram.messenger.permission.C2D_MESSAGE" />
+    <uses-permission android:name="org.telegramkr.messenger.permission.MAPS_RECEIVE"/>
+    <uses-permission android:name="org.telegramkr.messenger.permission.C2D_MESSAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <permission android:name="org.telegram.messenger.permission.MAPS_RECEIVE" android:protectionLevel="signature"/>
-    <permission android:name="org.telegram.messenger.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <permission android:name="org.telegramkr.messenger.permission.MAPS_RECEIVE" android:protectionLevel="signature"/>
+    <permission android:name="org.telegramkr.messenger.permission.C2D_MESSAGE" android:protectionLevel="signature" />
 
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/AppName"
+        android:label="TTalk Debug"
         android:theme="@style/Theme.TMessages.Start"
-        android:name=".ApplicationLoader"
+        android:name="org.telegram.messenger.ApplicationLoader"
         android:hardwareAccelerated="@bool/useHardwareAcceleration"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        tools:replace="android:label">
 
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyCTNmNqbWovP9ETcAob98YlrfOQEAC0CJ4" />
-
-        <activity android:name="net.hockeyapp.android.UpdateActivity" />
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyDq_143UV9XAGBImTnxUpQPNQQ5PgN4Ww8" />
 
         <receiver
             android:name="org.telegram.android.GcmBroadcastReceiver"
@@ -37,12 +38,11 @@
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="org.telegram.messenger" />
+                <category android:name="org.telegramkr.messenger" />
             </intent-filter>
         </receiver>
 
         <uses-library android:name="com.google.android.maps" android:required="false"/>
-
     </application>
 
 </manifest>

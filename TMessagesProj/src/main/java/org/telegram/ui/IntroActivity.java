@@ -13,6 +13,7 @@ import android.animation.StateListAnimator;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.database.DataSetObserver;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,8 +30,9 @@ import android.widget.TextView;
 
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
+import org.telegram.messenger.BuildVars;
+import me.ttalk.sdk.ServiceAgent;
 import org.telegram.messenger.R;
-import org.telegram.messenger.Utilities;
 
 public class IntroActivity extends Activity {
     private ViewPager viewPager;
@@ -45,14 +47,36 @@ public class IntroActivity extends Activity {
     private int[] messages;
 
     @Override
+    protected void onStart()
+    {
+        super.onStart();
+        ServiceAgent.getInstance(this, BuildVars.DEBUG_VERSION, BuildVars.SESSION_KEY).startSession(this);
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        ServiceAgent.getInstance().endSession(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_TMessages);
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        ServiceAgent.getInstance().logEvent("IntroActivity", "Start", "Reply");
 
-        if (AndroidUtilities.isTablet()) {
+        int screenSizeType = (getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK);
+        if(screenSizeType == Configuration.SCREENLAYOUT_SIZE_XLARGE || screenSizeType == Configuration.SCREENLAYOUT_SIZE_LARGE) {
             setContentView(R.layout.intro_layout_tablet);
-        } else {
+        }
+        else if(screenSizeType == Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setContentView(R.layout.intro_layout);
+        }
+        else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             setContentView(R.layout.intro_layout);
         }
@@ -117,7 +141,7 @@ public class IntroActivity extends Activity {
         viewPager = (ViewPager)findViewById(R.id.intro_view_pager);
         TextView startMessagingButton = (TextView) findViewById(R.id.start_messaging_button);
         startMessagingButton.setText(LocaleController.getString("StartMessaging", R.string.StartMessaging).toUpperCase());
-        if (Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             StateListAnimator animator = new StateListAnimator();
             animator.addState(new int[] {android.R.attr.state_pressed}, ObjectAnimator.ofFloat(startMessagingButton, "translationZ", AndroidUtilities.dp(2), AndroidUtilities.dp(4)).setDuration(200));
             animator.addState(new int[] {}, ObjectAnimator.ofFloat(startMessagingButton, "translationZ", AndroidUtilities.dp(4), AndroidUtilities.dp(2)).setDuration(200));
@@ -162,7 +186,6 @@ public class IntroActivity extends Activity {
                         fadeinImage.setImageResource(icons[lastPage]);
                         fadeinImage.clearAnimation();
                         fadeoutImage.clearAnimation();
-
 
                         Animation outAnimation = AnimationUtils.loadAnimation(IntroActivity.this, R.anim.icon_anim_fade_out);
                         outAnimation.setAnimationListener(new Animation.AnimationListener() {
@@ -236,8 +259,14 @@ public class IntroActivity extends Activity {
             }
             justCreated = false;
         }
-        Utilities.checkForCrashes(this);
-        Utilities.checkForUpdates(this);
+        AndroidUtilities.checkForCrashes(this);
+        AndroidUtilities.checkForUpdates(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        AndroidUtilities.unregisterUpdates();
     }
 
     private class IntroAdapter extends PagerAdapter {

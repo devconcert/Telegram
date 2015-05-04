@@ -11,10 +11,14 @@ package org.telegram.ui.Components;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.PowerManager;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
 import android.util.TypedValue;
@@ -23,17 +27,30 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import net.makeday.emoticonsdk.EmojiconEditText;
+import net.makeday.emoticonsdk.EmojiconsPopup;
+import net.makeday.emoticonsdk.StickerGridView;
+import net.makeday.emoticonsdk.StickerUsersGridView;
+import net.makeday.emoticonsdk.component.StickersPreviewPanel;
+import net.makeday.emoticonsdk.core.CacheStorage;
+import net.makeday.emoticonsdk.core.StickerUtils;
+import net.makeday.emoticonsdk.sticker.Sticker;
+
+import org.telegram.android.query.StickersQuery;
+import org.telegram.messenger.Utilities;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.Emoji;
 import org.telegram.android.LocaleController;
@@ -48,13 +65,24 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.BaseFragment;
-import org.telegram.ui.AnimationCompat.AnimatorListenerAdapterProxy;
-import org.telegram.ui.AnimationCompat.AnimatorSetProxy;
-import org.telegram.ui.AnimationCompat.ObjectAnimatorProxy;
-import org.telegram.ui.AnimationCompat.ViewProxy;
+import org.telegram.android.AnimationCompat.AnimatorListenerAdapterProxy;
+import org.telegram.android.AnimationCompat.AnimatorSetProxy;
+import org.telegram.android.AnimationCompat.ObjectAnimatorProxy;
+import org.telegram.android.AnimationCompat.ViewProxy;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.ui.Cells.StickerEmojiCell;
 
-import java.lang.reflect.Field;
+import me.ttalk.sdk.ServiceAgent;
+import me.ttalk.sdk.theme.ThemeManager;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 
 public class ChatActivityEnterView extends FrameLayoutFixed implements NotificationCenter.NotificationCenterDelegate, SizeNotifierRelativeLayout.SizeNotifierRelativeLayoutDelegate {
 
@@ -65,21 +93,33 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         void onAttachButtonHidden();
         void onAttachButtonShow();
         void onWindowSizeChanged(int size);
+        void onItemStoreStart();
+    }
+
+    public interface Listener {
+        void onStickerSelected(TLRPC.Document sticker);
     }
 
     private EditText messageEditText;
     private ImageView sendButton;
-    private PopupWindow emojiPopup;
+    //private PopupWindow emojiPopup;
+    private EmojiconsPopup emojiPopup;
     private ImageView emojiButton;
-    private EmojiView emojiView;
+    //private EmojiView emojiView;
     private TextView recordTimeText;
     private ImageView audioSendButton;
     private FrameLayout recordPanel;
     private LinearLayout slideText;
-    private SizeNotifierRelativeLayout sizeNotifierRelativeLayout;
+    private View sizeNotifierLayout;
     private FrameLayout attachButton;
     private LinearLayout textFieldContainer;
     private View topView;
+
+    private int framesDroped;
+
+    private int keyboardTransitionState;
+    private boolean showKeyboardOnEmojiButton;
+    private ViewTreeObserver.OnPreDrawListener onPreDrawListener;
 
     private PowerManager.WakeLock mWakeLock;
     private AnimatorSetProxy runningAnimation;
@@ -98,6 +138,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
     private float distCanMove = AndroidUtilities.dp(80);
     private boolean recordingAudio;
     private boolean forceShowSendButton;
+    private boolean allowStickers;
 
     private Activity parentActivity;
     private BaseFragment parentFragment;
@@ -105,18 +146,31 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
     private boolean ignoreTextChange;
     private MessageObject replyingMessageObject;
     private TLRPC.WebPage messageWebPage;
-    private boolean messageWebPageSearch;
+    private boolean messageWebPageSearch = true;
     private ChatActivityEnterViewDelegate delegate;
-
     private float topViewAnimation;
     private boolean topViewShowed;
     private boolean needShowTopView;
     private boolean allowShowTopView;
+    private StickersPreviewPanel stickersPreviewPanel;
     private AnimatorSetProxy currentTopViewAnimation;
+    private ArrayList<TLRPC.Document> stickers;
+    private StickersGridAdapter stickersGridAdapter;
+    private HashMap<Long, Integer> stickersUseHistory = new HashMap<>();
+    private Listener listener;
 
-    public ChatActivityEnterView(Activity context, SizeNotifierRelativeLayout parent, BaseFragment fragment, boolean isChat) {
+    public ChatActivityEnterView(Activity context, View parent, BaseFragment fragment, boolean isChat, boolean isEncrypt)  {
         super(context);
-        setBackgroundResource(R.drawable.compose_panel);
+        boolean isCustomTheme = false;
+        Drawable composeDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("compose_panel");
+        if (composeDrawable != null){
+            isCustomTheme = true;
+            if (Build.VERSION.SDK_INT >= 16) setBackground(composeDrawable);
+            else setBackgroundDrawable(composeDrawable);
+        }else{
+            setBackgroundResource(R.drawable.compose_panel);
+        }
+
         setFocusable(true);
         setFocusableInTouchMode(true);
 
@@ -131,19 +185,49 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         NotificationCenter.getInstance().addObserver(this, NotificationCenter.audioRouteChanged);
         parentActivity = context;
         parentFragment = fragment;
-        sizeNotifierRelativeLayout = parent;
-        sizeNotifierRelativeLayout.setDelegate(this);
+        sizeNotifierLayout = parent;
+        if (sizeNotifierLayout instanceof SizeNotifierRelativeLayout) {
+            ((SizeNotifierRelativeLayout) sizeNotifierLayout).setDelegate(this);
+        } else if (sizeNotifierLayout instanceof SizeNotifierFrameLayout) {
+            ((SizeNotifierFrameLayout) sizeNotifierLayout).setDelegate(this);
+        }
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
         sendByEnter = preferences.getBoolean("send_by_enter", false);
 
+        parent.getViewTreeObserver().addOnPreDrawListener(onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                if (keyboardTransitionState == 1) {
+                    if (keyboardVisible || framesDroped >= 60) {
+                        showEmojiPopup(false, false);
+                        keyboardTransitionState = 0;
+                    } else {
+                        openKeyboard();
+                    }
+                    framesDroped++;
+                    return false;
+                } else if (keyboardTransitionState == 2) {
+                    if (!keyboardVisible || framesDroped >= 60) {
+                        int currentHeight = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight;
+                        sizeNotifierLayout.setPadding(0, 0, 0, currentHeight);
+                        keyboardTransitionState = 0;
+                    }
+                    framesDroped++;
+                    return false;
+                }
+                return true;
+            }
+        });
+
         textFieldContainer = new LinearLayout(context);
-        textFieldContainer.setBackgroundColor(0xffffffff);
+        if(isCustomTheme) textFieldContainer.setBackgroundResource(R.drawable.transparent);
+        else textFieldContainer.setBackgroundColor(0xffffffff);
         textFieldContainer.setOrientation(LinearLayout.HORIZONTAL);
         addView(textFieldContainer);
         LayoutParams layoutParams2 = (LayoutParams) textFieldContainer.getLayoutParams();
         layoutParams2.gravity = Gravity.LEFT | Gravity.TOP;
-        layoutParams2.width = LayoutParams.MATCH_PARENT;
-        layoutParams2.height = LayoutParams.WRAP_CONTENT;
+        layoutParams2.width = LayoutHelper.MATCH_PARENT;
+        layoutParams2.height = LayoutHelper.WRAP_CONTENT;
         layoutParams2.topMargin = AndroidUtilities.dp(2);
         textFieldContainer.setLayoutParams(layoutParams2);
 
@@ -151,34 +235,30 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         textFieldContainer.addView(frameLayout);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) frameLayout.getLayoutParams();
         layoutParams.width = 0;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.weight = 1;
         frameLayout.setLayoutParams(layoutParams);
 
-        emojiButton = new ImageView(context);
-        emojiButton.setImageResource(R.drawable.ic_msg_panel_smiles);
-        emojiButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        emojiButton.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(1), 0, 0);
-        frameLayout.addView(emojiButton);
-        FrameLayout.LayoutParams layoutParams1 = (FrameLayout.LayoutParams) emojiButton.getLayoutParams();
-        layoutParams1.width = AndroidUtilities.dp(48);
-        layoutParams1.height = AndroidUtilities.dp(48);
-        layoutParams1.gravity = Gravity.BOTTOM;
-        emojiButton.setLayoutParams(layoutParams1);
-        emojiButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showEmojiPopup(emojiPopup == null || !emojiPopup.isShowing());
-            }
-        });
+        if (isChat) {
+            attachButton = new FrameLayout(context);
+            attachButton.setEnabled(false);
+    //            ViewProxy.setPivotX(attachButton, AndroidUtilities.dp(48));
+            frameLayout.addView(attachButton);
+            FrameLayout.LayoutParams layoutParamsAttach = (FrameLayout.LayoutParams) attachButton.getLayoutParams();
+            layoutParamsAttach.width = AndroidUtilities.dp(48);
+            layoutParamsAttach.height = AndroidUtilities.dp(48);
+            layoutParamsAttach.gravity = Gravity.BOTTOM;
+            layoutParamsAttach.topMargin = AndroidUtilities.dp(2);
+            attachButton.setLayoutParams(layoutParamsAttach);
+        }
 
-        messageEditText = new EditText(context);
+        messageEditText = new EmojiconEditText(context);
         messageEditText.setHint(LocaleController.getString("TypeMessage", R.string.TypeMessage));
         messageEditText.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         messageEditText.setInputType(messageEditText.getInputType() | EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE);
         messageEditText.setSingleLine(false);
         messageEditText.setMaxLines(4);
-        messageEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        messageEditText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, preferences.getInt("fons_size", 18));
         messageEditText.setGravity(Gravity.BOTTOM);
         messageEditText.setPadding(0, AndroidUtilities.dp(11), 0, AndroidUtilities.dp(12));
         messageEditText.setBackgroundDrawable(null);
@@ -186,19 +266,20 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         messageEditText.setTextColor(0xff000000);
         messageEditText.setHintTextColor(0xffb2b2b2);
         frameLayout.addView(messageEditText);
-        layoutParams1 = (FrameLayout.LayoutParams) messageEditText.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+
+        FrameLayout.LayoutParams layoutParams1 = (FrameLayout.LayoutParams) messageEditText.getLayoutParams();
+        layoutParams1.width = LayoutHelper.MATCH_PARENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.gravity = Gravity.BOTTOM;
-        layoutParams1.leftMargin = AndroidUtilities.dp(52);
-        layoutParams1.rightMargin = AndroidUtilities.dp(isChat ? 50 : 2);
+        layoutParams1.leftMargin = AndroidUtilities.dp(isChat ? 48 : 10);
+        layoutParams1.rightMargin = AndroidUtilities.dp(48);
         messageEditText.setLayoutParams(layoutParams1);
         messageEditText.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
                 if (i == 4 && !keyboardVisible && emojiPopup != null && emojiPopup.isShowing()) {
                     if (keyEvent.getAction() == 1) {
-                        showEmojiPopup(false);
+                        showEmojiPopup(false, false);
                     }
                     return true;
                 } else if (i == KeyEvent.KEYCODE_ENTER && sendByEnter && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
@@ -212,7 +293,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
             @Override
             public void onClick(View view) {
                 if (emojiPopup != null && emojiPopup.isShowing()) {
-                    showEmojiPopup(false);
+                    showEmojiPopup(false, false);
                 }
             }
         });
@@ -243,10 +324,10 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 checkSendButton(true);
 
                 if (delegate != null) {
-                    if (before > count || count > 1) {
+                    if (count > 2 || charSequence == null || charSequence.length() == 0) {
                         messageWebPageSearch = true;
                     }
-                    delegate.onTextChanged(charSequence, before > count || count > 1);
+                    delegate.onTextChanged(charSequence, before > count + 1 || (count - before) > 2);
                 }
 
                 if (message.length() != 0 && lastTypingTimeSend < System.currentTimeMillis() - 5000 && !ignoreTextChange) {
@@ -270,6 +351,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 if (sendByEnter && editable.length() > 0 && editable.charAt(editable.length() - 1) == '\n') {
                     sendMessage();
                 }
+/*
                 int i = 0;
                 ImageSpan[] arrayOfImageSpan = editable.getSpans(0, editable.length(), ImageSpan.class);
                 int j = arrayOfImageSpan.length;
@@ -281,37 +363,149 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                     editable.removeSpan(arrayOfImageSpan[i]);
                     i++;
                 }
+*/
             }
         });
 
-        if (isChat) {
-            attachButton = new FrameLayout(context);
-            attachButton.setEnabled(false);
-            ViewProxy.setPivotX(attachButton, AndroidUtilities.dp(48));
-            frameLayout.addView(attachButton);
-            layoutParams1 = (FrameLayout.LayoutParams) attachButton.getLayoutParams();
-            layoutParams1.width = AndroidUtilities.dp(48);
-            layoutParams1.height = AndroidUtilities.dp(48);
-            layoutParams1.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-            attachButton.setLayoutParams(layoutParams1);
+        // Emoji Button
+        emojiButton = new ImageView(context);
+        Drawable smileDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_msg_panel_smiles");
+        if (smileDrawable != null){
+            emojiButton.setImageDrawable(smileDrawable);
+        }else{
+            emojiButton.setImageResource(R.drawable.ic_msg_panel_smiles);
         }
+        emojiButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        emojiButton.setPadding(AndroidUtilities.dp(4), AndroidUtilities.dp(1), 0, 0);
+        frameLayout.addView(emojiButton);
+
+        FrameLayout.LayoutParams layoutParamsEmoji = (FrameLayout.LayoutParams) emojiButton.getLayoutParams();
+        layoutParamsEmoji.width = AndroidUtilities.dp(48);
+        layoutParamsEmoji.height = AndroidUtilities.dp(48);
+        layoutParamsEmoji.gravity =  Gravity.BOTTOM | Gravity.RIGHT;
+        layoutParamsEmoji.topMargin = AndroidUtilities.dp(2);
+        emojiButton.setLayoutParams(layoutParamsEmoji);
+
+        /*
+        emojiButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showEmojiPopup(emojiPopup == null || !emojiPopup.isShowing());
+            }
+        });
+        */
+
+        StickersQuery.checkStickers();
+        stickers = StickersQuery.getStickers();
+        GridView gridView = new GridView(context);
+        gridView.setColumnWidth(AndroidUtilities.dp(72));
+        gridView.setNumColumns(-1);
+        gridView.setPadding(0, AndroidUtilities.dp(4), 0, 0);
+        gridView.setClipToPadding(false);
+        stickersGridAdapter = new StickersGridAdapter(context);
+        gridView.setAdapter(stickersGridAdapter);
+        AndroidUtilities.setListViewEdgeEffectColor(gridView, 0xfff5f6f7);
+        setListener(new ChatActivityEnterView.Listener() {
+            public void onStickerSelected(TLRPC.Document sticker) {
+                ServiceAgent.getInstance().logEvent("Sticker", "Custom", String.valueOf(sticker.id));
+                SendMessagesHelper.getInstance().sendSticker(sticker, dialog_id, replyingMessageObject);
+                if (delegate != null) {
+                    delegate.onMessageSend(null);
+                }
+            }
+        });
+        boolean hasItemShop = preferences.getBoolean("item_store", true);
+        emojiPopup = new EmojiconsPopup(parent,
+                ApplicationLoader.applicationContext,
+                (EmojiconEditText)messageEditText,
+                emojiButton,
+                isChat,
+                isEncrypt,
+                hasItemShop,
+                new StickerUsersGridView(ApplicationLoader.applicationContext, gridView, R.drawable.ic_emoji_sticker));
+
+        emojiPopup.setSizeForSoftKeyboard();
+
+        if (smileDrawable != null) {
+            emojiPopup.setSmileIconDrawable(smileDrawable);
+        } else {
+            emojiPopup.setSmileIcon(R.drawable.ic_msg_panel_smiles);
+        }
+
+        emojiPopup.setKeyboardIcon(R.drawable.ic_msg_panel_kb);
+        // To toggle between text keyboard and emoji keyboard keyboard(Popup)
+        emojiButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                ServiceAgent.getInstance().logEvent("Chat.ComposePanel.Emoji.Click");
+                ServiceAgent.getInstance().logEvent("Chat", "Emoji", "Click");
+                showEmojiPopup(true, false);
+            }
+        });
+        emojiPopup.setOnItemStoreClickedListener(new EmojiconsPopup.OnItemStoreClickedListener() {
+
+            @Override
+            public void onItemShopClicked() {
+                ServiceAgent.getInstance().logEvent("Chat.ComposePanel.Emoji.Store");
+                ServiceAgent.getInstance().logEvent("Chat", "ItemStore", "Start");
+                if (delegate != null) {
+                    delegate.onItemStoreStart();
+                }
+            }
+        });
+
+        emojiPopup.setOnStickerClickedListener(new StickerGridView.OnStickerClickedListener() {
+
+            @Override
+            public void onStickerClicked(Sticker sticker) {
+                if (sticker.getStickerType() == Sticker.TYPE_LOCAL) {
+                    changeSendButton(true);
+                    try {
+                        String cacheFileName = sticker.getStickerFullName();
+                        InputStream is = StickerUtils.getRawData(ApplicationLoader.applicationContext, cacheFileName);
+                        ByteBuffer buffer = StickerUtils.readInputStream(is);
+                        Bitmap image = Utilities.loadWebpImage(buffer, buffer.limit(), null);
+                        stickersPreviewPanel.setSticker(sticker, image);
+                        buffer.clear();
+                    }catch(Exception e){
+                        FileLog.e("tmessages", e);
+                    }
+                }else if(sticker.getStickerType() == Sticker.TYPE_DOWNLOAD) {
+                    changeSendButton(true);
+                    try {
+                        String cacheFileFinal = sticker.getStickerModel().getPath() + File.separator + sticker.getStickerModel().toStickerWEBP(sticker.getStickerIndex());
+                        InputStream is = new FileInputStream(cacheFileFinal);
+                        ByteBuffer buffer = StickerUtils.readInputStream(is);
+                        Bitmap image = Utilities.loadWebpImage(buffer, buffer.limit(), null);
+                        stickersPreviewPanel.setSticker(sticker, image);
+                        buffer.clear();
+                        is.close();
+                    } catch (Exception e) {
+                        FileLog.e("tmessages", e);
+                    }
+                }
+            }
+        });
 
         recordPanel = new FrameLayoutFixed(context);
         recordPanel.setVisibility(GONE);
-        recordPanel.setBackgroundColor(0xffffffff);
+        if(isCustomTheme) recordPanel.setBackgroundResource(R.drawable.transparent);
+        else recordPanel.setBackgroundColor(0xffffffff);
         frameLayout.addView(recordPanel);
         layoutParams1 = (FrameLayout.LayoutParams) recordPanel.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams1.width = LayoutHelper.MATCH_PARENT;
         layoutParams1.height = AndroidUtilities.dp(48);
         layoutParams1.gravity = Gravity.BOTTOM;
+        layoutParams1.topMargin = AndroidUtilities.dp(2); // FIXME
         recordPanel.setLayoutParams(layoutParams1);
 
         slideText = new LinearLayout(context);
         slideText.setOrientation(LinearLayout.HORIZONTAL);
         recordPanel.addView(slideText);
         layoutParams1 = (FrameLayout.LayoutParams) slideText.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.gravity = Gravity.CENTER;
         layoutParams1.leftMargin = AndroidUtilities.dp(30);
         slideText.setLayoutParams(layoutParams1);
@@ -320,8 +514,8 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         imageView.setImageResource(R.drawable.slidearrow);
         slideText.addView(imageView);
         layoutParams = (LinearLayout.LayoutParams) imageView.getLayoutParams();
-        layoutParams.width = LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layoutParams.topMargin = AndroidUtilities.dp(1);
         imageView.setLayoutParams(layoutParams);
@@ -332,8 +526,8 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         slideText.addView(textView);
         layoutParams = (LinearLayout.LayoutParams) textView.getLayoutParams();
-        layoutParams.width = LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layoutParams.leftMargin = AndroidUtilities.dp(6);
         textView.setLayoutParams(layoutParams);
@@ -341,11 +535,12 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
         linearLayout.setPadding(AndroidUtilities.dp(13), 0, 0, 0);
-        linearLayout.setBackgroundColor(0xffffffff);
+        if(isCustomTheme) linearLayout.setBackgroundResource(R.drawable.transparent);
+        else linearLayout.setBackgroundColor(0xffffffff);
         recordPanel.addView(linearLayout);
         layoutParams1 = (FrameLayout.LayoutParams) linearLayout.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.gravity = Gravity.CENTER_VERTICAL;
         linearLayout.setLayoutParams(layoutParams1);
 
@@ -353,8 +548,8 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         imageView.setImageResource(R.drawable.rec);
         linearLayout.addView(imageView);
         layoutParams = (LinearLayout.LayoutParams) imageView.getLayoutParams();
-        layoutParams.width = LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layoutParams.topMargin = AndroidUtilities.dp(1);
         imageView.setLayoutParams(layoutParams);
@@ -365,8 +560,8 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         recordTimeText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         linearLayout.addView(recordTimeText);
         layoutParams = (LinearLayout.LayoutParams) recordTimeText.getLayoutParams();
-        layoutParams.width = LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.CENTER_VERTICAL;
         layoutParams.leftMargin = AndroidUtilities.dp(6);
         recordTimeText.setLayoutParams(layoutParams);
@@ -377,12 +572,14 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         layoutParams.width = AndroidUtilities.dp(48);
         layoutParams.height = AndroidUtilities.dp(48);
         layoutParams.gravity = Gravity.BOTTOM;
+        layoutParams.topMargin = AndroidUtilities.dp(2); // FIXME
         frameLayout1.setLayoutParams(layoutParams);
 
         audioSendButton = new ImageView(context);
         audioSendButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         audioSendButton.setImageResource(R.drawable.mic_button_states);
-        audioSendButton.setBackgroundColor(0xffffffff);
+        if(isCustomTheme) audioSendButton.setBackgroundResource(R.drawable.transparent);
+        else audioSendButton.setBackgroundColor(0xffffffff);
         audioSendButton.setSoundEffectsEnabled(false);
         audioSendButton.setPadding(0, 0, AndroidUtilities.dp(4), 0);
         frameLayout1.addView(audioSendButton);
@@ -395,8 +592,8 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     if (parentFragment != null) {
-                        String action = null;
-                        TLRPC.Chat currentChat = null;
+                        String action;
+                        TLRPC.Chat currentChat;
                         if ((int) dialog_id < 0) {
                             currentChat = MessagesController.getInstance().getChat(-(int) dialog_id);
                             if (currentChat != null && currentChat.participants_count > MessagesController.getInstance().groupBigSize) {
@@ -486,7 +683,35 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
             }
         });
 
+        changeRemoteTheme();
         checkSendButton(false);
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                // ??
+                NotificationCenter.getInstance().postNotificationName(NotificationCenter.emojiDidLoaded);
+            }
+        });
+    }
+
+    private void setKeyboardTransitionState(int state) {
+        if (AndroidUtilities.usingHardwareInput) {
+            if (state == 1) {
+                showEmojiPopup(false, false);
+                keyboardTransitionState = 0;
+
+            } else if (state == 2) {
+                int currentHeight = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight;
+                sizeNotifierLayout.setPadding(0, 0, 0, currentHeight);
+                keyboardTransitionState = 0;
+            }
+        } else {
+            framesDroped = 0;
+            keyboardTransitionState = state;
+            if (state == 1) {
+                sizeNotifierLayout.setPadding(0, 0, 0, 0);
+            }
+        }
     }
 
     public void addTopView(View view, int height) {
@@ -498,7 +723,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         topView.setVisibility(GONE);
         needShowTopView = false;
         LayoutParams layoutParams = (LayoutParams) topView.getLayoutParams();
-        layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
         layoutParams.height = height;
         layoutParams.topMargin = AndroidUtilities.dp(2);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
@@ -521,17 +746,20 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         checkSendButton(animated);
     }
 
+    public void setAllowStickers(boolean value) {
+        allowStickers = value;
+    }
+
     public void showTopView(boolean animated) {
         if (topView == null || topViewShowed) {
             return;
         }
+
         needShowTopView = true;
         topViewShowed = true;
         if (allowShowTopView) {
             topView.setVisibility(VISIBLE);
-            float resumeValue = 0.0f;
             if (currentTopViewAnimation != null) {
-                resumeValue = topViewAnimation;
                 currentTopViewAnimation.cancel();
                 currentTopViewAnimation = null;
             }
@@ -598,6 +826,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 });
                 currentTopViewAnimation.setDuration(200);
                 currentTopViewAnimation.start();
+                topView.setVisibility(GONE);
             } else {
                 topView.setVisibility(GONE);
                 setTopViewAnimation(0.0f);
@@ -644,6 +873,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.emojiDidLoaded);
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.hideEmojiKeyboard);
         NotificationCenter.getInstance().removeObserver(this, NotificationCenter.audioRouteChanged);
+        sizeNotifierLayout.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
         if (mWakeLock != null) {
             try {
                 mWakeLock.release();
@@ -652,8 +882,12 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 FileLog.e("tmessages", e);
             }
         }
-        if (sizeNotifierRelativeLayout != null) {
-            sizeNotifierRelativeLayout.setDelegate(null);
+        if (sizeNotifierLayout != null) {
+            if (sizeNotifierLayout instanceof SizeNotifierRelativeLayout) {
+                ((SizeNotifierRelativeLayout) sizeNotifierLayout).setDelegate(null);
+            } else if (sizeNotifierLayout instanceof SizeNotifierFrameLayout) {
+                ((SizeNotifierFrameLayout) sizeNotifierLayout).setDelegate(null);
+            }
         }
     }
 
@@ -670,10 +904,15 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         messageWebPageSearch = searchWebPages;
     }
 
+    public boolean isMessageWebPageSearchEnabled() {
+        return messageWebPageSearch;
+    }
+
     private void sendMessage() {
+        ServiceAgent.getInstance().logEvent("Chat.ComposePanel.Send");
         if (parentFragment != null) {
-            String action = null;
-            TLRPC.Chat currentChat = null;
+            String action;
+            TLRPC.Chat currentChat;
             if ((int) dialog_id < 0) {
                 currentChat = MessagesController.getInstance().getChat(-(int) dialog_id);
                 if (currentChat != null && currentChat.participants_count > MessagesController.getInstance().groupBigSize) {
@@ -688,6 +927,20 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 return;
             }
         }
+// FIXME send sticker with message.
+//        String message = getTrimmedString(messsageEditText.getText().toString());
+//        if (message.length() > 0 && stickersPreviewPanel.hasSticker() == true){
+//            stickersPreviewPanel.sendSticker();
+//        }else{
+//            beforeSendMessage();
+//        }
+        if(stickersPreviewPanel != null){
+            stickersPreviewPanel.sendSticker();
+        }
+        beforeSendMessage();
+    }
+
+    public void beforeSendMessage() {
         String message = messageEditText.getText().toString();
         if (processSendingText(message)) {
             messageEditText.setText("");
@@ -734,6 +987,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         if (message.length() > 0 || forceShowSendButton) {
             if (audioSendButton.getVisibility() == View.VISIBLE) {
                 if (animated) {
+                    changeSendButton(animated);
                     if (runningAnimationType == 1) {
                         return;
                     }
@@ -810,14 +1064,17 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                     sendButton.setVisibility(View.VISIBLE);
                     audioSendButton.setVisibility(View.GONE);
                     audioSendButton.clearAnimation();
+/*
                     if (attachButton != null) {
                         attachButton.setVisibility(View.GONE);
                         attachButton.clearAnimation();
+
                         delegate.onAttachButtonHidden();
                         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) messageEditText.getLayoutParams();
                         layoutParams.rightMargin = AndroidUtilities.dp(0);
                         messageEditText.setLayoutParams(layoutParams);
                     }
+*/
                 }
             }
         } else if (sendButton.getVisibility() == View.VISIBLE) {
@@ -902,92 +1159,184 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         }
     }
 
-    private void updateAudioRecordIntefrace() {
-        if (recordingAudio) {
-            if (audioInterfaceState == 1) {
+    private void changeSendButton(boolean animated) {
+        if(animated) {
+            if (runningAnimationType == 1) {
                 return;
             }
-            audioInterfaceState = 1;
-            try {
-                if (mWakeLock == null) {
-                    PowerManager pm = (PowerManager) ApplicationLoader.applicationContext.getSystemService(Context.POWER_SERVICE);
-                    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "audio record lock");
-                    mWakeLock.acquire();
-                }
-            } catch (Exception e) {
-                FileLog.e("tmessages", e);
+            if (runningAnimation != null) {
+                runningAnimation.cancel();
+                runningAnimation = null;
             }
-            AndroidUtilities.lockOrientation(parentActivity);
-
-            recordPanel.setVisibility(View.VISIBLE);
-            recordTimeText.setText("00:00");
-            lastTimeString = null;
-
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) slideText.getLayoutParams();
-            params.leftMargin = AndroidUtilities.dp(30);
-            slideText.setLayoutParams(params);
-            ViewProxy.setAlpha(slideText, 1);
-            ViewProxy.setX(recordPanel, AndroidUtilities.displaySize.x);
-            if (runningAnimationAudio != null) {
-                runningAnimationAudio.cancel();
+            if (runningAnimation2 != null) {
+                runningAnimation2.cancel();
+                runningAnimation2 = null;
             }
-            runningAnimationAudio = ObjectAnimatorProxy.ofFloatProxy(recordPanel, "translationX", 0).setDuration(300);
-            runningAnimationAudio.addListener(new AnimatorListenerAdapterProxy() {
+/*
+                    if (attachButton != null) {
+                        runningAnimation2 = new AnimatorSetProxy();
+                        runningAnimation2.playTogether(
+                                ObjectAnimatorProxy.ofFloat(attachButton, "alpha", 0.0f),
+                                ObjectAnimatorProxy.ofFloat(attachButton, "scaleX", 0.0f)
+                        );
+                        runningAnimation2.setDuration(100);
+                        runningAnimation2.addListener(new AnimatorListenerAdapterProxy() {
+                            @Override
+                            public void onAnimationEnd(Object animation) {
+                                if (runningAnimation2.equals(animation)) {
+                                    attachButton.setVisibility(View.GONE);
+                                    attachButton.clearAnimation();
+                                }
+                            }
+                        });
+                        runningAnimation2.start();
+
+                        if (messsageEditText != null) {
+                            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) messsageEditText.getLayoutParams();
+                            layoutParams.rightMargin = AndroidUtilities.dp(0);
+                            messsageEditText.setLayoutParams(layoutParams);
+                        }
+
+                        delegate.onAttachButtonHidden();
+                    }
+*/
+            sendButton.setVisibility(View.VISIBLE);
+            runningAnimation = new AnimatorSetProxy();
+            runningAnimationType = 1;
+
+            runningAnimation.playTogether(
+                    ObjectAnimatorProxy.ofFloat(audioSendButton, "scaleX", 0.1f),
+                    ObjectAnimatorProxy.ofFloat(audioSendButton, "scaleY", 0.1f),
+                    ObjectAnimatorProxy.ofFloat(audioSendButton, "alpha", 0.0f),
+                    ObjectAnimatorProxy.ofFloat(sendButton, "scaleX", 1.0f),
+                    ObjectAnimatorProxy.ofFloat(sendButton, "scaleY", 1.0f),
+                    ObjectAnimatorProxy.ofFloat(sendButton, "alpha", 1.0f)
+            );
+
+            runningAnimation.setDuration(150);
+            runningAnimation.addListener(new AnimatorListenerAdapterProxy() {
                 @Override
-                public void onAnimationEnd(Object animator) {
-                    if (runningAnimationAudio != null && runningAnimationAudio.equals(animator)) {
-                        ViewProxy.setX(recordPanel, 0);
+                public void onAnimationEnd(Object animation) {
+                    if (runningAnimation.equals(animation)) {
+                        sendButton.setVisibility(View.VISIBLE);
+                        audioSendButton.setVisibility(View.GONE);
+                        audioSendButton.clearAnimation();
+                        runningAnimation = null;
+                        runningAnimationType = 0;
                     }
                 }
             });
-            runningAnimationAudio.setInterpolator(new AccelerateDecelerateInterpolator());
-            runningAnimationAudio.start();
-        } else {
-            if (mWakeLock != null) {
+            runningAnimation.start();
+        }
+    }
+    private void updateAudioRecordIntefrace() {
+        try {
+            if (recordingAudio) {
+                if (audioInterfaceState == 1) {
+                    return;
+                }
+                audioInterfaceState = 1;
                 try {
-                    mWakeLock.release();
-                    mWakeLock = null;
+                    if (mWakeLock == null) {
+                        PowerManager pm = (PowerManager) ApplicationLoader.applicationContext.getSystemService(Context.POWER_SERVICE);
+                        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "audio record lock");
+                        mWakeLock.acquire();
+                    }
                 } catch (Exception e) {
                     FileLog.e("tmessages", e);
                 }
-            }
-            AndroidUtilities.unlockOrientation(parentActivity);
-            if (audioInterfaceState == 0) {
-                return;
-            }
-            audioInterfaceState = 0;
+                AndroidUtilities.lockOrientation(parentActivity);
 
-            if (runningAnimationAudio != null) {
-                runningAnimationAudio.cancel();
-            }
-            runningAnimationAudio = ObjectAnimatorProxy.ofFloatProxy(recordPanel, "translationX", AndroidUtilities.displaySize.x).setDuration(300);
-            runningAnimationAudio.addListener(new AnimatorListenerAdapterProxy() {
-                @Override
-                public void onAnimationEnd(Object animator) {
-                    if (runningAnimationAudio != null && runningAnimationAudio.equals(animator)) {
-                        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) slideText.getLayoutParams();
-                        params.leftMargin = AndroidUtilities.dp(30);
-                        slideText.setLayoutParams(params);
-                        ViewProxy.setAlpha(slideText, 1);
-                        recordPanel.setVisibility(View.GONE);
+                // Disable Text Message & Attach Button
+                messageEditText.setVisibility(View.INVISIBLE);
+                attachButton.setVisibility(View.INVISIBLE);
+
+                recordPanel.setVisibility(View.VISIBLE);
+                recordTimeText.setText("00:00");
+                lastTimeString = null;
+
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) slideText.getLayoutParams();
+                params.leftMargin = AndroidUtilities.dp(30);
+                slideText.setLayoutParams(params);
+                ViewProxy.setAlpha(slideText, 1);
+                ViewProxy.setX(recordPanel, AndroidUtilities.displaySize.x);
+                if (runningAnimationAudio != null) {
+                    runningAnimationAudio.cancel();
+                }
+                runningAnimationAudio = ObjectAnimatorProxy.ofFloatProxy(recordPanel, "translationX", 0).setDuration(300);
+                runningAnimationAudio.addListener(new AnimatorListenerAdapterProxy() {
+                    @Override
+                    public void onAnimationEnd(Object animator) {
+                        if (runningAnimationAudio != null && runningAnimationAudio.equals(animator)) {
+                            ViewProxy.setX(recordPanel, 0);
+                        }
+                    }
+                });
+                runningAnimationAudio.setInterpolator(new AccelerateDecelerateInterpolator());
+                runningAnimationAudio.start();
+            } else {
+                if (mWakeLock != null) {
+                    try {
+                        mWakeLock.release();
+                        mWakeLock = null;
+                    } catch (Exception e) {
+                        FileLog.e("tmessages", e);
                     }
                 }
-            });
-            runningAnimationAudio.setInterpolator(new AccelerateDecelerateInterpolator());
-            runningAnimationAudio.start();
+                AndroidUtilities.unlockOrientation(parentActivity);
+                if (audioInterfaceState == 0) {
+                    return;
+                }
+                audioInterfaceState = 0;
+
+                if (runningAnimationAudio != null) {
+                    runningAnimationAudio.cancel();
+                }
+                runningAnimationAudio = ObjectAnimatorProxy.ofFloatProxy(recordPanel, "translationX", AndroidUtilities.displaySize.x).setDuration(300);
+                runningAnimationAudio.addListener(new AnimatorListenerAdapterProxy() {
+                    @Override
+                    public void onAnimationEnd(Object animator) {
+                        if (runningAnimationAudio != null && runningAnimationAudio.equals(animator)) {
+                            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) slideText.getLayoutParams();
+                            params.leftMargin = AndroidUtilities.dp(30);
+                            slideText.setLayoutParams(params);
+                            ViewProxy.setAlpha(slideText, 1);
+                            recordPanel.setVisibility(View.GONE);
+
+                            // Disable Text Message & Attach Button
+                            messageEditText.setVisibility(View.VISIBLE);
+                            attachButton.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+                runningAnimationAudio.setInterpolator(new AccelerateDecelerateInterpolator());
+                runningAnimationAudio.start();
+            }
+        }catch(Exception e) {
+            // FIXME: java.lang.NullPointerException org.telegram.ui.Components.ChatActivityEnterView.updateAudioRecordIntefrace(ChatActivityEnterView.java:1133)
+            FileLog.e("tmessages", e);
         }
     }
 
-    private void showEmojiPopup(boolean show) {
+    private void showEmojiPopup(boolean show, boolean post) {
+        emojiPopup.showEmojiPopup();
+//        if(show){
+//            onWindowSizeChanged(sizeNotifierLayout.getHeight() - sizeNotifierLayout.getPaddingBottom());
+//        }
+        /*
         if (show) {
             if (emojiPopup == null) {
                 if (parentActivity == null) {
                     return;
                 }
-                emojiView = new EmojiView(parentActivity);
+                emojiView = new EmojiView(allowStickers, parentActivity);
                 emojiView.setListener(new EmojiView.Listener() {
-                    public void onBackspace() {
-                        messageEditText.dispatchKeyEvent(new KeyEvent(0, 67));
+                    public boolean onBackspace() {
+                        if (messageEditText.length() == 0) {
+                            return false;
+                        }
+                        messageEditText.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
+                        return true;
                     }
 
                     public void onEmojiSelected(String symbol) {
@@ -995,7 +1344,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                         if (i < 0) {
                             i = 0;
                         }
-                        try {
+                        try {//TODO check
                             CharSequence localCharSequence = Emoji.replaceEmoji(symbol, messageEditText.getPaint().getFontMetricsInt(), AndroidUtilities.dp(20));
                             messageEditText.setText(messageEditText.getText().insert(i, localCharSequence));
                             int j = i + localCharSequence.length();
@@ -1004,24 +1353,16 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                             FileLog.e("tmessages", e);
                         }
                     }
+
+                    public void onStickerSelected(TLRPC.Document sticker) {
+                        SendMessagesHelper.getInstance().sendSticker(sticker, dialog_id, replyingMessageObject);
+                        if (delegate != null) {
+                            delegate.onMessageSend(null);
+                        }
+                    }
                 });
                 emojiPopup = new PopupWindow(emojiView);
-
-                if (Build.VERSION.SDK_INT >= 21) {
-                    /*emojiPopup.setAnimationStyle(0);
-                    emojiPopup.setClippingEnabled(true);
-                    emojiPopup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);
-                    emojiPopup.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);*/
-                    try {
-                        Field field = PopupWindow.class.getDeclaredField("mWindowLayoutType");
-                        field.setAccessible(true);
-                        field.set(emojiPopup, WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
-                    } catch (Exception e) {
-                        //ignored
-                    }
-                }
             }
-            int currentHeight;
 
             if (keyboardHeight <= 0) {
                 keyboardHeight = ApplicationLoader.applicationContext.getSharedPreferences("emoji", 0).getInt("kbd_height", AndroidUtilities.dp(200));
@@ -1029,59 +1370,33 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
             if (keyboardHeightLand <= 0) {
                 keyboardHeightLand = ApplicationLoader.applicationContext.getSharedPreferences("emoji", 0).getInt("kbd_height_land3", AndroidUtilities.dp(200));
             }
-            if (AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y) {
-                currentHeight = keyboardHeightLand;
-            } else {
-                currentHeight = keyboardHeight;
-            }
+            int currentHeight = AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y ? keyboardHeightLand : keyboardHeight;
             FileLog.e("tmessages", "show emoji with height = " + currentHeight);
             emojiPopup.setHeight(View.MeasureSpec.makeMeasureSpec(currentHeight, View.MeasureSpec.EXACTLY));
-            if (sizeNotifierRelativeLayout != null) {
+            if (sizeNotifierLayout != null) {
                 emojiPopup.setWidth(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.x, View.MeasureSpec.EXACTLY));
             }
 
             emojiPopup.showAtLocation(parentActivity.getWindow().getDecorView(), Gravity.BOTTOM | Gravity.LEFT, 0, 0);
 
-            /*if (Build.VERSION.SDK_INT < 21) {
-                try {
-
-                } catch (Exception e) {
-                    FileLog.e("tmessages", e);
-                    return;
-                }
-            }*/
-
             if (!keyboardVisible) {
-                /*if (Build.VERSION.SDK_INT >= 21) {
-                    try {
-                        emojiPopup.showAsDropDown(this, 0, 0);
-                    } catch (Exception e) {
-                        FileLog.e("tmessages", e);
-                        return;
-                    }
-                }*/
-                if (sizeNotifierRelativeLayout != null) {
-                    sizeNotifierRelativeLayout.setPadding(0, 0, 0, currentHeight);
+                if (sizeNotifierLayout != null) {
+                    sizeNotifierLayout.setPadding(0, 0, 0, currentHeight);
                     emojiButton.setImageResource(R.drawable.ic_msg_panel_hide);
-                    onWindowSizeChanged(sizeNotifierRelativeLayout.getHeight() - sizeNotifierRelativeLayout.getPaddingBottom());
+                    showKeyboardOnEmojiButton = false;
+                    onWindowSizeChanged(sizeNotifierLayout.getHeight() - sizeNotifierLayout.getPaddingBottom());
                 }
                 return;
             } else {
-                /*if (Build.VERSION.SDK_INT >= 21) {
-                    try {
-                        emojiPopup.showAsDropDown(this, 0, -currentHeight - getHeight());
-                        emojiPopup.update(this, 0, -currentHeight - getHeight(), -1, -1);
-                        AndroidUtilities.hideKeyboard(messageEditText);
-                    } catch (Exception e) {
-                        FileLog.e("tmessages", e);
-                        return;
-                    }
-                }*/
+                setKeyboardTransitionState(2);
+                AndroidUtilities.hideKeyboard(messageEditText);
             }
             emojiButton.setImageResource(R.drawable.ic_msg_panel_kb);
+            showKeyboardOnEmojiButton = true;
             return;
         }
         if (emojiButton != null) {
+            showKeyboardOnEmojiButton = false;
             emojiButton.setImageResource(R.drawable.ic_msg_panel_smiles);
         }
         if (emojiPopup != null) {
@@ -1091,21 +1406,28 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 //don't promt
             }
         }
-        if (sizeNotifierRelativeLayout != null) {
-            sizeNotifierRelativeLayout.post(new Runnable() {
-                public void run() {
-                    if (sizeNotifierRelativeLayout != null) {
-                        sizeNotifierRelativeLayout.setPadding(0, 0, 0, 0);
-                        onWindowSizeChanged(sizeNotifierRelativeLayout.getHeight() - sizeNotifierRelativeLayout.getPaddingBottom());
-                    }
+        if (keyboardTransitionState == 0) {
+            if (sizeNotifierLayout != null) {
+                if (post) {
+                    sizeNotifierLayout.post(new Runnable() {
+                        public void run() {
+                            if (sizeNotifierLayout != null) {
+                                sizeNotifierLayout.setPadding(0, 0, 0, 0);
+                                onWindowSizeChanged(sizeNotifierLayout.getHeight());
+                            }
+                        }
+                    });
+                } else {
+                    sizeNotifierLayout.setPadding(0, 0, 0, 0);
+                    onWindowSizeChanged(sizeNotifierLayout.getHeight());
                 }
-            });
-        }
+            }
+        }*/
     }
 
     public void hideEmojiPopup() {
         if (emojiPopup != null && emojiPopup.isShowing()) {
-            showEmojiPopup(false);
+            showEmojiPopup(false, true);
         }
     }
 
@@ -1201,12 +1523,13 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
         layoutParams.gravity = Gravity.CENTER;
         layoutParams.width = AndroidUtilities.dp(48);
-        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         view.setLayoutParams(layoutParams);
     }
 
     @Override
     public void onSizeChanged(int height, boolean isWidthGreater) {
+/*
         if (height > AndroidUtilities.dp(50) && keyboardVisible) {
             if (isWidthGreater) {
                 keyboardHeightLand = height;
@@ -1218,58 +1541,60 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
         }
 
         if (emojiPopup != null && emojiPopup.isShowing()) {
-            int newHeight = 0;
-            if (isWidthGreater) {
-                newHeight = keyboardHeightLand;
-            } else {
-                newHeight = keyboardHeight;
-            }
+            int newHeight = isWidthGreater ? keyboardHeightLand : keyboardHeight;
             final WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) emojiPopup.getContentView().getLayoutParams();
             FileLog.e("tmessages", "update emoji height to = " + newHeight);
             if (layoutParams.width != AndroidUtilities.displaySize.x || layoutParams.height != newHeight) {
-                /*if (Build.VERSION.SDK_INT >= 21) {
-                    if (!keyboardVisible) {
-                        emojiPopup.update(this, 0, 0, -1, -1);
-                    } else {
-                        emojiPopup.update(this, 0, -newHeight - getHeight(), -1, -1);
-                    }
-                }*/
                 layoutParams.width = AndroidUtilities.displaySize.x;
                 layoutParams.height = newHeight;
                 WindowManager wm = (WindowManager) ApplicationLoader.applicationContext.getSystemService(Activity.WINDOW_SERVICE);
                 if (wm != null) {
                     wm.updateViewLayout(emojiPopup.getContentView(), layoutParams);
                     if (!keyboardVisible) {
-                        if (sizeNotifierRelativeLayout != null) {
-                            sizeNotifierRelativeLayout.setPadding(0, 0, 0, layoutParams.height);
-                            sizeNotifierRelativeLayout.requestLayout();
-                            onWindowSizeChanged(sizeNotifierRelativeLayout.getHeight() - sizeNotifierRelativeLayout.getPaddingBottom());
+                        if (sizeNotifierLayout != null) {
+                            sizeNotifierLayout.setPadding(0, 0, 0, layoutParams.height);
+                            sizeNotifierLayout.requestLayout();
+                            onWindowSizeChanged(sizeNotifierLayout.getHeight() - sizeNotifierLayout.getPaddingBottom());
                         }
                     }
                 }
             }
         }
-
+*/
         boolean oldValue = keyboardVisible;
         keyboardVisible = height > 0;
-        if (keyboardVisible && sizeNotifierRelativeLayout.getPaddingBottom() > 0) {
-            showEmojiPopup(false);
-        } else if (!keyboardVisible && keyboardVisible != oldValue && emojiPopup != null && emojiPopup.isShowing()) {
-            showEmojiPopup(false);
+        if (keyboardVisible && (sizeNotifierLayout.getPaddingBottom() > 0 || keyboardTransitionState == 1)) {
+            setKeyboardTransitionState(1);
+        } else if (keyboardTransitionState != 2 && !keyboardVisible && keyboardVisible != oldValue && emojiPopup != null && emojiPopup.isShowing()) {
+            showEmojiPopup(false, true);
         }
-        onWindowSizeChanged(sizeNotifierRelativeLayout.getHeight() - sizeNotifierRelativeLayout.getPaddingBottom());
+        if (keyboardTransitionState == 0) {
+            onWindowSizeChanged(sizeNotifierLayout.getHeight() - sizeNotifierLayout.getPaddingBottom());
+        }
+
+    }
+
+    public int getEmojiHeight() {
+        if (AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y) {
+            return keyboardHeightLand;
+        } else {
+            return keyboardHeight;
+        }
     }
 
     @Override
     public void didReceivedNotification(int id, Object... args) {
         if (id == NotificationCenter.emojiDidLoaded) {
-            if (emojiView != null) {
-                emojiView.invalidateViews();
+            if (emojiPopup != null) {
+                emojiPopup.invalidateViews();
             }
         } else if (id == NotificationCenter.recordProgressChanged) {
             Long time = (Long) args[0] / 1000;
             String str = String.format("%02d:%02d", time / 60, time % 60);
             if (lastTimeString == null || !lastTimeString.equals(str)) {
+                if (time % 5 == 0) {
+                    MessagesController.getInstance().sendTyping(dialog_id, 1, 0);
+                }
                 if (recordTimeText != null) {
                     recordTimeText.setText(str);
                 }
@@ -1280,6 +1605,7 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
             }
         } else if (id == NotificationCenter.recordStartError || id == NotificationCenter.recordStopped) {
             if (recordingAudio) {
+                MessagesController.getInstance().sendTyping(dialog_id, 2, 0);
                 recordingAudio = false;
                 updateAudioRecordIntefrace();
             }
@@ -1299,6 +1625,227 @@ public class ChatActivityEnterView extends FrameLayoutFixed implements Notificat
                 boolean frontSpeaker = (Boolean) args[0];
                 parentActivity.setVolumeControlStream(frontSpeaker ? AudioManager.STREAM_VOICE_CALL : AudioManager.USE_DEFAULT_STREAM_TYPE);
             }
+        } else if (id == NotificationCenter.stickersDidLoaded) {
+            if (stickersGridAdapter != null) {
+                prepareUserStickers();
+            }
         }
     }
+
+    private void prepareUserStickers() {
+        stickers = StickersQuery.getStickers();
+        if(stickers.size() == 0) {
+            ArrayList<TLRPC.TL_stickerSet> stickerSets = StickersQuery.getStickerSets();
+
+            ArrayList<TLRPC.Document> documents = new ArrayList<>();
+            for (TLRPC.TL_stickerSet stickersSet : stickerSets) {
+                documents.addAll(StickersQuery.getStickersForSet(stickersSet.id));
+            }
+            stickers = documents;
+        }
+        sortStickers();
+        stickersGridAdapter.notifyDataSetChanged();
+    }
+
+    // @@ Custom Theme
+    private void changeRemoteTheme() {
+        Drawable sendDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_send");
+        if (sendDrawable != null){
+            sendButton.setImageDrawable(sendDrawable);
+        }
+        Drawable smileDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_msg_panel_smiles");
+        if (smileDrawable != null){
+            emojiButton.setImageDrawable(smileDrawable);
+        }
+
+        Drawable recordDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("mic_button_states");
+        if (recordDrawable != null){
+            audioSendButton.setImageDrawable(recordDrawable);
+            audioSendButton.setBackgroundResource(R.drawable.transparent);
+        }
+    }
+
+    public void setStickersPreviewPanel(StickersPreviewPanel previewPanel) {
+        this.stickersPreviewPanel = previewPanel;
+        this.stickersPreviewPanel.setOnStickerPreviewClosedListener(new StickersPreviewPanel.OnStickerPreviewClosedListener() {
+            @Override
+            public void onStickerClicked(boolean _close) {
+                checkSendButton(false);
+            }
+        });
+        this.stickersPreviewPanel.setOnStickerPreviewClickedListener(new StickerGridView.OnStickerClickedListener() {
+            @Override
+            public void onStickerClicked(Sticker sticker) {
+                try {
+                    checkSendButton(false);
+
+                    InputStream is = null;
+                    String cacheFileName = null;
+                    String originalPath = null;
+                    if (sticker.getStickerType() == Sticker.TYPE_LOCAL) {
+                        cacheFileName = sticker.getStickerFullName();
+                        is = StickerUtils.getRawData(ApplicationLoader.applicationContext, cacheFileName);
+                        cacheFileName = cacheFileName + ".webp";
+
+                        ServiceAgent.getInstance().logEvent("Chat.ComposePanel.Send.Embeded.Sticker", sticker.getStickerName() + "_" + sticker.getStickerIndex());
+                        ServiceAgent.getInstance().logEvent("Sticker", sticker.getStickerName(), String.valueOf(sticker.getStickerIndex()));
+                    } else if (sticker.getStickerType() == Sticker.TYPE_DOWNLOAD) {
+                        is = new FileInputStream(sticker.getStickerModel().getPath() + File.separator + sticker.getStickerModel().toStickerWEBP(sticker.getStickerIndex()));
+                        cacheFileName = "sticker_" + sticker.getStickerModel().toStickerWEBP(sticker.getStickerIndex());
+
+                        ServiceAgent.getInstance().logEvent("Chat.ComposePanel.Send.Downloaded.Sticker", sticker.getStickerModel().getStickerName() + "_" + sticker.getStickerIndex());
+                        ServiceAgent.getInstance().logEvent("Sticker_Downloaded", sticker.getStickerModel().getStickerName(), String.valueOf(sticker.getStickerIndex()));
+                    } else {
+                        return;
+                    }
+
+                    CacheStorage cache = new CacheStorage(ApplicationLoader.applicationContext, cacheFileName);
+                    originalPath = cache.generateCacheFile(is);
+                    is.close();
+
+                    final ArrayList<String> stickers = new ArrayList<>();
+                    stickers.add(originalPath);
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SendMessagesHelper.prepareSendingPhotos(stickers, null, dialog_id, replyingMessageObject, null);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (stickersGridAdapter != null) {
+            NotificationCenter.getInstance().addObserver(this, NotificationCenter.stickersDidLoaded);
+            prepareUserStickers();
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (stickersGridAdapter != null) {
+            NotificationCenter.getInstance().removeObserver(this, NotificationCenter.stickersDidLoaded);
+        }
+    }
+
+    public void setListener(Listener value) {
+        listener = value;
+    }
+
+    private void saveRecents() {
+        ArrayList<Long> arrayList = new ArrayList<>(Emoji.data[0].length);
+        for (int j = 0; j < Emoji.data[0].length; j++) {
+            arrayList.add(Emoji.data[0][j]);
+        }
+        getContext().getSharedPreferences("emoji", 0).edit().putString("recents", TextUtils.join(",", arrayList)).commit();
+    }
+
+    private void saveRecentStickers() {
+        SharedPreferences preferences = getContext().getSharedPreferences("emoji", Activity.MODE_PRIVATE);
+        StringBuilder stringBuilder = new StringBuilder();
+        for (HashMap.Entry<Long, Integer> entry : stickersUseHistory.entrySet()) {
+            if (stringBuilder.length() != 0) {
+                stringBuilder.append(",");
+            }
+            stringBuilder.append(entry.getKey());
+            stringBuilder.append("=");
+            stringBuilder.append(entry.getValue());
+        }
+        getContext().getSharedPreferences("emoji", 0).edit().putString("stickers", stringBuilder.toString()).commit();
+    }
+
+    private void sortStickers() {
+        HashMap<Long, Integer> hashMap = new HashMap<>();
+        for (TLRPC.Document document : stickers) {
+            Integer count = stickersUseHistory.get(document.id);
+            if (count != null) {
+                hashMap.put(document.id, count);
+                stickersUseHistory.remove(document.id);
+            }
+        }
+        if (!stickersUseHistory.isEmpty()) {
+            stickersUseHistory = hashMap;
+            saveRecents();
+        } else {
+            stickersUseHistory = hashMap;
+        }
+        Collections.sort(stickers, new Comparator<TLRPC.Document>() {
+            @Override
+            public int compare(TLRPC.Document lhs, TLRPC.Document rhs) {
+                Integer count1 = stickersUseHistory.get(lhs.id);
+                Integer count2 = stickersUseHistory.get(rhs.id);
+                if (count1 == null) {
+                    count1 = 0;
+                }
+                if (count2 == null) {
+                    count2 = 0;
+                }
+                if (count1 > count2) {
+                    return -1;
+                } else if (count1 < count2) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+    }
+    private class StickersGridAdapter extends BaseAdapter {
+
+        Context context;
+
+        public StickersGridAdapter(Context context) {
+            this.context = context;
+        }
+        public int getCount() {
+            return stickers.size();
+        }
+        public Object getItem(int i) {
+            return stickers.get(i);
+        }
+        public long getItemId(int i) {
+            return stickers.get(i).id;
+        }
+
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            if (view == null) {
+                view = new StickerEmojiCell(context) {
+                    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(82), MeasureSpec.EXACTLY));
+                    }
+                };
+                view.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (listener != null) {
+                            TLRPC.Document document = ((StickerEmojiCell) v).getSticker();
+                            Integer count = stickersUseHistory.get(document.id);
+                            if (count == null) {
+                                count = 0;
+                            }
+                            stickersUseHistory.put(document.id, ++count);
+                            saveRecentStickers();
+                            listener.onStickerSelected(document);
+                        }
+                    }
+                });
+            }
+            ((StickerEmojiCell) view).setSticker(stickers.get(i), false);
+            return view;
+        }
+
+        @Override
+        public void unregisterDataSetObserver(DataSetObserver observer) {
+            if (observer != null) {
+                super.unregisterDataSetObserver(observer);
+            }
+        }
+    }
+
 }

@@ -18,9 +18,10 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 
+import org.telegram.android.ContactsController;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.ApplicationLoader;
@@ -172,44 +173,7 @@ public class AvatarDrawable extends Drawable {
         }
 
         drawBrodcast = isBroadcast;
-
-        if (firstName == null || firstName.length() == 0) {
-            firstName = lastName;
-            lastName = null;
-        }
-
-        String text = "";
-        if (firstName != null && firstName.length() > 0) {
-            text += firstName.substring(0, 1);
-        }
-        if (lastName != null && lastName.length() > 0) {
-            String lastch = null;
-            for (int a = lastName.length() - 1; a >= 0; a--) {
-                if (lastch != null && lastName.charAt(a) == ' ') {
-                    break;
-                }
-                lastch = lastName.substring(a, a + 1);
-            }
-            if (Build.VERSION.SDK_INT >= 16) {
-                text += "\u200C" + lastch;
-            } else {
-                text += lastch;
-            }
-        } else if (firstName != null && firstName.length() > 0) {
-            for (int a = firstName.length() - 1; a >= 0; a--) {
-                if (firstName.charAt(a) == ' ') {
-                    if (a != firstName.length() - 1 && firstName.charAt(a + 1) != ' ') {
-                        if (Build.VERSION.SDK_INT >= 16) {
-                            text += "\u200C" + firstName.substring(a + 1, a + 2);
-                        } else {
-                            text += firstName.substring(a + 1, a + 2);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
+        String text = ContactsController.getAvaterNameLetter(firstName, lastName);
         if (text.length() > 0) {
             text = text.toUpperCase();
             try {

@@ -1,18 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-
-
+<?xml version='1.0' encoding='UTF-8'?>
 <resources>
-    <string name="AppName">Telegram</string>
+    <string name="AppName">TelegramTalk</string>
     <string name="LanguageName">English</string>
     <string name="LanguageNameInEnglish">English</string>
     <string name="LanguageCode">en</string>
-    <!--signin view-->
+    <!-- signin view -->
     <string name="YourPhone">Your phone</string>
     <string name="StartText">Please confirm your country code and enter your phone number.</string>
     <string name="ChooseCountry">Choose a country</string>
     <string name="WrongCountry">Wrong country code</string>
-    <!--code enter view-->
+    <!-- code enter view -->
     <string name="YourCode">Your code</string>
     <string name="SentSmsCode">We\'ve sent an SMS with an activation code to your phone</string>
     <string name="CallText">We will call you in %1$d:%2$02d</string>
@@ -20,14 +17,15 @@
     <string name="Code">Code</string>
     <string name="WrongNumber">Wrong number?</string>
     <string name="DidNotGetTheCode">Didn\'t get the code?</string>
-    <!--signup view-->
+    <!-- signup view -->
     <string name="YourName">Your name</string>
     <string name="RegisterText">Set up your first and last name</string>
-    <!--<string name="RegisterText">Set up your name and picture</string>-->
+    <!-- <string name="RegisterText">Set up your name and picture</string> -->
     <string name="FirstName">First name (required)</string>
     <string name="LastName">Last name (optional)</string>
     <string name="CancelRegistration">Cancel registration</string>
-    <!--chats view-->
+    <!-- chats view -->
+    <string name="Search">Search</string>
     <string name="Settings">Settings</string>
     <string name="Contacts">Contacts</string>
     <string name="NewGroup">New Group</string>
@@ -38,7 +36,7 @@
     <string name="WaitingForNetwork">Waiting for network...</string>
     <string name="Connecting">Connecting...</string>
     <string name="Updating">Updating...</string>
-    <string name="NewSecretChat">New Secret Chat</string>
+    <string name="NewSecretChat">1:1 Secret Chat</string>
     <string name="AwaitingEncryption">Waiting for %s to get online...</string>
     <string name="EncryptionRejected">Secret chat cancelled</string>
     <string name="EncryptionProcessing">Exchanging encryption keys...</string>
@@ -52,7 +50,6 @@
     <string name="PhotoTip">Tap and hold to view</string>
     <string name="CompatibilityChat">%1$s is using an older version of Telegram, so secret photos will be shown in compatibility mode.\n\nOnce %2$s updates Telegram, photos with timers for 1 minute or less will start working in \'Tap and hold to view\' mode, and you will be notified whenever the other party takes a screenshot.</string>
     <string name="SearchMessages">MESSAGES</string>
-    <string name="Search">Search</string>
     <string name="MuteNotifications">Mute notifications</string>
     <string name="MuteFor">Mute for %1$s</string>
     <string name="UnmuteNotifications">Unmute</string>
@@ -65,7 +62,7 @@
     <string name="YouCreatedBroadcastList">You created a broadcast list</string>
     <string name="AddRecipient">Add recipient</string>
     <string name="KickFromBroadcast">Remove from broadcast list</string>
-    <!--documents view-->
+    <!-- documents view -->
     <string name="SelectFile">Select File</string>
     <string name="FreeOfTotal">Free %1$s of %2$s</string>
     <string name="UnknownError">Unknown error</string>
@@ -89,11 +86,15 @@
     <string name="IsSendingPhoto">%1$s is sending photo...</string>
     <string name="IsSendingVideo">%1$s is sending video...</string>
     <string name="IsSendingFile">%1$s is sending file...</string>
+    <string name="RecordingAudio">recording audio...</string>
+    <string name="SendingPhoto">sending photo...</string>
+    <string name="SendingVideoStatus">sending video...</string>
+    <string name="SendingFile">sending file...</string>
     <string name="GotAQuestion">Got a question\nabout Telegram?</string>
     <string name="ChatTakePhoto">Take photo</string>
+    <string name="ChatVideo">Take Video</string>
     <string name="ChatGallery">Gallery</string>
     <string name="ChatLocation">Location</string>
-    <string name="ChatVideo">Video</string>
     <string name="ChatDocument">File</string>
     <string name="NoMessages">No messages here yet...</string>
     <string name="ForwardedMessage">Forwarded message</string>
@@ -122,6 +123,8 @@
     <string name="SetTimer">Set self-destruct timer</string>
     <string name="ServiceNotifications">Service notifications</string>
     <string name="GettingLinkInfo">Getting Link Info...</string>
+    <string name="OpenInBrowser">Open in Browser</string>
+    <string name="CopyUrl">Copy URL</string>
     <!--notification-->
     <string name="MessageLifetimeChanged">%1$s set the self-destruct timer to %2$s</string>
     <string name="MessageLifetimeChangedOutgoing">You set the self-destruct timer to %1$s</string>
@@ -157,14 +160,15 @@
     <string name="NotificationContactJoined">%1$s joined Telegram!</string>
     <string name="NotificationUnrecognizedDevice">%1$s,\nWe detected a login into your account from a new device on %2$s\n\nDevice: %3$s\nLocation: %4$s\n\nIf this wasn\'t you, you can go to Settings - Privacy and Security - Sessions and terminate that session.\n\nIf you think that somebody logged in to your account against your will, you can enable two-step verification in Privacy and Security settings.\n\nSincerely,\nThe Telegram Team</string>
     <string name="NotificationContactNewPhoto">%1$s updated profile photo</string>
+    <string name="NotificationInvitedToGroupByLink">%1$s joined to the group %2$s via invite link</string>
     <string name="Reply">Reply</string>
     <string name="ReplyToGroup">Reply to %1$s</string>
     <string name="ReplyToUser">Reply to %1$s</string>
     <string name="NotificationMessagesPeopleDisplayOrder">%1$s %2$s</string>
-    <!--contacts view-->
-    <string name="SelectContact">Select Contact</string>
+    <!-- contacts view -->
+    <string name="SelectContact">New Select Contact(Normal Chat)</string>
     <string name="NoContacts">No contacts yet</string>
-    <string name="InviteText">Hey, let\'s switch to Telegram: https://telegram.org/dl</string>
+    <string name="InviteText">Hey, let\'s switch to Telegram Talk\nDownload: http://goo.gl/fRcHmm</string>
     <string name="TodayAt">at</string>
     <string name="YesterdayAt">yesterday at</string>
     <string name="Online">online</string>
@@ -178,10 +182,23 @@
     <string name="ALongTimeAgo">last seen a long time ago</string>
     <string name="NewMessageTitle">New Message</string>
     <!--group create view-->
-    <string name="SendMessageTo">Send message to...</string>
+    <string name="SendMessageTo">Search Name, ID ...</string>
     <string name="EnterGroupNamePlaceholder">Enter group name</string>
     <string name="GroupName">Group name</string>
     <string name="MembersCount">%1$d/%2$d members</string>
+    <string name="JoinToGroup">Do you want to join the group \'%1$s\'?</string>
+    <string name="JoinToGroupErrorFull">Sorry, this group is already full.</string>
+    <string name="JoinToGroupErrorNotExist">Sorry, this group does not seem to exist.</string>
+    <string name="LinkCopied">Link copied to clipboard</string>
+    <string name="InviteToGroupByLink">Invite to Group via Link</string>
+    <string name="InviteLink">Invite Link</string>
+    <string name="RevokeAlert">Are you sure you want to revoke this link? Once you do, no one will be able to join the group using it.</string>
+    <string name="RevokeAlertNewLink">The previous invite link is now inactive. A new link has been generated.</string>
+    <string name="RevokeButton">Revoke</string>
+    <string name="RevokeLink">Revoke Link</string>
+    <string name="CopyLink">Copy Link</string>
+    <string name="ShareLink">Share Link</string>
+    <string name="LinkInfo">Anyone who has Telegram installed will be able to join your group by following this link.</string>
     <!--group info view-->
     <string name="SharedMedia">Shared Media</string>
     <string name="SETTINGS">Settings</string>
@@ -189,7 +206,7 @@
     <string name="DeleteAndExit">Delete and leave group</string>
     <string name="Notifications">Notifications</string>
     <string name="KickFromGroup">Remove from group</string>
-    <!--contact info view-->
+    <!-- contact info view -->
     <string name="ShareContact">Share</string>
     <string name="AddContact">Add</string>
     <string name="AddContactTitle">Add contact</string>
@@ -210,7 +227,7 @@
     <string name="NumberUnknown">Unknown</string>
     <string name="Info">Info</string>
     <string name="Phone">Phone</string>
-    <!--usernames-->
+    <!-- usernames -->
     <string name="Username">Username</string>
     <string name="UsernamePlaceholder">Your Username</string>
     <string name="UsernameInUse">Sorry, this username is already taken.</string>
@@ -223,6 +240,22 @@
     <string name="UsernameAvailable">%1$s is available.</string>
     <string name="UsernameEmpty">None</string>
     <string name="ErrorOccurred">An error occurred.</string>
+    <!--stickers view-->
+    <string name="Stickers">Stickers</string>
+    <string name="Stickers_User_Manage">Management of Custom Sticker</string>
+    <string name="GeniusStickerPackName">Great Minds</string>
+    <string name="StickersInfo">Artists are welcome to add their own sticker packs using our @stickers bot.\n\nUsers can add stickers by tapping on them and choosing \"Add to Stickers\".</string>
+    <string name="AddStickers">Add Stickers</string>
+    <string name="AddToStickers">Add to Stickers</string>
+    <string name="AddStickersNotFound">Stickers not found</string>
+    <string name="StickersRemoved">Stickers removed</string>
+    <string name="AddStickersInstalled">New stickers added</string>
+    <string name="StickersHide">Hide</string>
+    <string name="StickersShow">Show</string>
+    <string name="StickersShare">Share</string>
+    <string name="StickersCopy">Copy link</string>
+    <string name="StickersRemove">Remove</string>
+    <string name="NoStickers">No stickers yet</string>
     <!--settings view-->
     <string name="ResetNotificationsText">Reset all notification settings to default</string>
     <string name="TextSize">Messages Text Size</string>
@@ -252,15 +285,15 @@
     <string name="Support">Support</string>
     <string name="OnlyIfSilent">Only if silent</string>
     <string name="ChatBackground">Chat Background</string>
-    <string name="MessagesSettings">Messages</string>
+    <string name="MessagesSettings">MESSAGES/ALRAM</string>
     <string name="SendByEnter">Send by Enter</string>
     <string name="TerminateAllSessions">Terminate All Other Sessions</string>
     <string name="Events">Events</string>
     <string name="ContactJoined">Contact joined Telegram</string>
     <string name="Pebble">PEBBLE</string>
     <string name="Language">Language</string>
-    <string name="AskAQuestionInfo">Please note that Telegram Support is done by volunteers. We try to respond as quickly as possible, but it may take a while.<![CDATA[<br><br>]]>Please take a look at the <![CDATA[<a href=\"http://telegram.org/faq#general\">Telegram FAQ</a>]]>: it has answers to most questions and important tips for <![CDATA[<a href=\"http://telegram.org/faq#troubleshooting\">troubleshooting</a>]]>.</string>
-    <string name="AskButton">Ask a volunteer</string>
+    <string name="AskAQuestionInfo">Please note that Telegram Support is done by developers. We try to respond as quickly as possible, but it may take a while.<![CDATA[<br><br>]]>Please take a look at the <![CDATA[<a href=\"http://telegram.org/faq#general\">Telegram FAQ</a>]]>: it has answers to most questions and important tips for <![CDATA[<a href=\"http://telegram.org/faq#troubleshooting\">troubleshooting</a>]]>.</string>
+    <string name="AskButton">Ask a developer</string>
     <string name="TelegramFaq">Telegram FAQ</string>
     <string name="TelegramFaqUrl">https://telegram.org/faq</string>
     <string name="DeleteLocalization">Delete localization?</string>
@@ -311,6 +344,13 @@
     <string name="RepeatDisabled">Off</string>
     <string name="InChatSound">In-Chat Sounds</string>
     <string name="SoundDefault">Default</string>
+    <string name="SmartNotifications">Smart Notifications</string>
+    <string name="SmartNotificationsDisabled">Disabled</string>
+    <string name="SmartNotificationsInfo">Sound at most %1$s within %2$s</string>
+    <string name="SmartNotificationsSoundAtMost">Sound at most</string>
+    <string name="SmartNotificationsTimes">times</string>
+    <string name="SmartNotificationsWithin">within</string>
+    <string name="SmartNotificationsMinutes">minutes</string>
     <!--sessions view-->
     <string name="SessionsTitle">Active Sessions</string>
     <string name="CurrentSession">Current session</string>
@@ -350,15 +390,20 @@
     <string name="Hybrid">Hybrid</string>
     <string name="MetersAway">m away</string>
     <string name="KMetersAway">km away</string>
-    <string name="SendLocation">Send Location</string>
-    <string name="ShareLocation">Share Location</string>
+    <string name="SendLocation">Send your current location</string>
+    <string name="SendSelectedLocation">Send selected location</string>
+    <string name="ShareLocation">Location</string>
+    <string name="AccurateTo">Accurate to %1$s</string>
+    <string name="NearbyPlaces">OR CHOOSE A PLACE</string>
     <!--photo gallery view-->
     <string name="ShowAllMedia">Show all media</string>
     <string name="SaveToGallery">Save to gallery</string>
     <string name="Of">%1$d of %2$d</string>
     <string name="Gallery">Gallery</string>
     <string name="AllPhotos">All Photos</string>
+    <string name="AllVideo">All Videos</string>
     <string name="NoPhotos">No photos yet</string>
+    <string name="NoVideo">No videos yet</string>
     <string name="PleaseDownload">Please download media first</string>
     <string name="NoRecentPhotos">No recent photos</string>
     <string name="NoRecentGIFs">No recent GIFs</string>
@@ -388,6 +433,11 @@
     <string name="DiscardChanges">Discard changes?</string>
     <string name="ClearSearch">Clear search history?</string>
     <string name="ClearButton">Clear</string>
+    <string name="PickerPhotos">Photos</string>
+    <string name="PickerVideo">Video</string>
+    <string name="AddCaption">Add a caption...</string>
+    <string name="PhotoCaption">Photo Caption</string>
+    <string name="VideoCaption">Video Caption</string>
     <!--password view-->
     <string name="TwoStepVerification">Two-Step Verification</string>
     <string name="SetAdditionalPassword">Set Additional Password</string>
@@ -453,7 +503,7 @@
     <string name="SecurityTitle">Security</string>
     <string name="DeleteAccountTitle">Account self-destructs</string>
     <string name="DeleteAccountIfAwayFor">If you\'re away for</string>
-    <string name="DeleteAccountHelp">If you do not log in at least once within this period, your account will be deleted along with all groups, messages and contacts.</string>
+    <string name="DeleteAccountHelp">If you do not log in at least once within this period, your account will be deleted along with all groups, Messages and contacts.</string>
     <string name="DeleteAccountNowConfirmation">Delete your account?</string>
     <string name="LastSeenHelp">Change who can see your Last Seen time.</string>
     <string name="LastSeenTitle">Who can see your Last Seen time?</string>
@@ -476,12 +526,13 @@
     <string name="EditedVideo">Edited Video</string>
     <string name="SendingVideo">Sending video...</string>
     <string name="CompressVideo">Compress Video</string>
-    <!--button titles-->
+    <!-- button titles -->
     <string name="Next">Next</string>
     <string name="Back">Back</string>
     <string name="Done">Done</string>
     <string name="Open">Open</string>
     <string name="Cancel">Cancel</string>
+    <string name="Close">Close</string>
     <string name="Add">Add</string>
     <string name="Edit">Edit</string>
     <string name="Send">Send</string>
@@ -496,7 +547,10 @@
     <string name="Set">Set</string>
     <string name="OK">OK</string>
     <string name="Crop">CROP</string>
+
     <!--messages-->
+    <string name="ActionInviteYou">You joined the group via invite link</string>
+    <string name="ActionInviteUser">un1 joined the group via invite link</string>
     <string name="ActionKickUser">un1 removed un2</string>
     <string name="ActionLeftUser">un1 left group</string>
     <string name="ActionAddUser">un1 added un2</string>
@@ -514,7 +568,8 @@
     <string name="ActionKickUserYou">un1 removed you</string>
     <string name="ActionAddUserYou">un1 added you</string>
     <string name="ActionAddUserSelf">un1 returned to the group</string>
-    <string name="UnsuppotedMedia">This message is not supported on your version of Telegram. Update the app to view: http://telegram.org/update</string>
+    <string name="ActionAddUserSelfYou">You returned to the group</string>
+    <string name="UnsuppotedMedia">This message is not supported on your version of Telegram. Update the app to view: http://goo.gl/fRcHmm</string>
     <string name="AttachPhoto">Photo</string>
     <string name="AttachVideo">Video</string>
     <string name="AttachLocation">Location</string>
@@ -525,7 +580,8 @@
     <string name="FromYou">You</string>
     <string name="ActionTakeScreenshootYou">You took a screenshot!</string>
     <string name="ActionTakeScreenshoot">un1 took a screenshot!</string>
-    <!--Alert messages-->
+
+    <!-- Alert messages -->
     <string name="InvalidPhoneNumber">Invalid phone number</string>
     <string name="CodeExpired">Code expired, please login again</string>
     <string name="FloodWait">Too many attempts, please try again later</string>
@@ -557,7 +613,7 @@
     <string name="SendMessagesToGroup">Send messages to %1$s?</string>
     <string name="ForwardMessagesToGroup">Forward messages to %1$s?</string>
     <string name="FeatureUnavailable">Sorry, this feature is currently not available in your country.</string>
-    <!--Intro view-->
+    <!-- Intro view -->
     <string name="Page1Title">Telegram</string>
     <string name="Page2Title">Fast</string>
     <string name="Page3Title">Free</string>
@@ -573,7 +629,7 @@
     <string name="Page6Message"><![CDATA[<b>Telegram</b>]]> lets you access your messages<![CDATA[<br/>]]>from multiple devices.</string>
     <string name="Page7Message"><![CDATA[<b>Telegram</b>]]> messages are heavily encrypted<![CDATA[<br/>]]>and can self-destruct.</string>
     <string name="StartMessaging">Start Messaging</string>
-    <!--plural-->
+    <!-- plural -->
     <string name="Online_zero">%1$d online</string>
     <string name="Online_one">%1$d online</string>
     <string name="Online_two">%1$d online</string>
@@ -646,6 +702,9 @@
     <string name="Weeks_few">%1$d weeks</string>
     <string name="Weeks_many">%1$d weeks</string>
     <string name="Weeks_other">%1$d weeks</string>
+
+    <!-- For Custom version -->
+    <!-- date formatters -->
     <string name="Months_zero">%1$d months</string>
     <string name="Months_one">%1$d month</string>
     <string name="Months_two">%1$d months</string>
@@ -664,6 +723,24 @@
     <string name="Users_few">%1$d users</string>
     <string name="Users_many">%1$d users</string>
     <string name="Users_other">%1$d users</string>
+    <string name="Times_zero">%1$d times</string>
+    <string name="Times_one">%1$d time</string>
+    <string name="Times_two">%1$d times</string>
+    <string name="Times_few">%1$d times</string>
+    <string name="Times_many">%1$d times</string>
+    <string name="Times_other">%1$d times</string>
+    <string name="Meters_zero">%1$d meters</string>
+    <string name="Meters_one">%1$d meter</string>
+    <string name="Meters_two">%1$d meters</string>
+    <string name="Meters_few">%1$d meters</string>
+    <string name="Meters_many">%1$d meters</string>
+    <string name="Meters_other">%1$d meters</string>
+    <string name="Stickers_zero">%1$d stickers</string>
+    <string name="Stickers_one">%1$d sticker</string>
+    <string name="Stickers_two">%1$d stickers</string>
+    <string name="Stickers_few">%1$d stickers</string>
+    <string name="Stickers_many">%1$d stickers</string>
+    <string name="Stickers_other">%1$d stickers</string>
     <!--forwarded messages-->
     <string name="ForwardedMessage_zero">%1$d forwarded messages</string>
     <string name="ForwardedMessage_one">Forwarded message</string>
@@ -730,4 +807,94 @@
     <string name="formatterDay24H">HH:mm</string>
     <string name="formatterDay12H">h:mm a</string>
     <string name="formatDateAtTime">%1$s at %2$s</string>
+
+    <!-- Custom -->
+     <string name="Chats">Chats</string>
+     <string name="NewMessages">New messages (1:1, Group)</string>
+    <string name="NewTalk">New Talk Friends</string>
+     <string name="EncryptedChatMessageHide">Secret Message.</string>
+     <string name="ChatEmoticonPack">Emoticon Pack</string>
+    <string name="EncryptedDescription5">Response for your friend privacy(DO NOT CAPTURE!!)</string>
+     <string name="SelectSecretContact">New Secret Chat</string>
+     <string name="NewBroadcastSection">Create Broadcast Message Group, Separately</string>
+    <string name="NewSecretChatSection">Keep it simple, Fast. 1:1 Secret Talk.</string>
+    <string name="StartNormalChat">Start Normal Chat</string>
+     <string name="SecretMessagePreview">Secret Message Preview</string>
+     <string name="WhenPasscodeMessageNotificationPreview">Message Notification Preview</string>
+     <string name="SendByShiftEnter">Send by Shift+Enter</string>
+    <string name="Immediately">Immediately</string>
+    <string name="Set_Default">Default Theme Apply</string>
+     <string name="Set_Current">Select Theme Apply</string>
+
+    <string name="EMOTICON_DOWN_TITLE">Emoticon Pack Down</string>
+    <string name="EMOTICON_DOWN_TITLE_DETAIL">Emoticon Pack is not install.\nDo you want download from Google Market?</string>
+
+    <!-- Theme -->
+    <string name="themeChooser">Theme(All)</string>
+    <string name="themeColorChooser">Theme Change(Color)</string>
+    <string name="theme_default">Default Theme</string>
+    <string name="theme_red">Red Theme</string>
+    <string name="theme_green">Green Theme</string>
+    <string name="theme_yellow">Yellow Theme</string>
+    <string name="theme_fucsia">Fucsia Theme</string>
+    <string name="theme_violet">Violet Theme</string>
+    <string name="theme_blue">Dark Blue Theme</string>
+    <string name="theme_purple">Purple Theme</string>
+    <string name="theme_material_green">Material Green Theme</string>
+    <string name="theme_black">Black Theme</string>
+
+    <string name="theme_telegram_app">Telegram Theme</string>
+    <string name="theme_installed_app">Installed Theme</string>
+    <string name="theme_into_store">Into the theme store</string>
+    <string name="theme_try">Please try the lovely theme.</string>
+    <string name="theme_basic">Basic Theme</string>
+    <string name="theme_delete">Delete</string>
+    <string name="theme_apply">Apply</string>
+    <string name="theme_applyed">Applyed</string>
+    <string name="theme_download">Download</string>
+    <string name="theme_unlimit">Unlimit</string>
+    <string name="theme_apply_text">Do you want apply this theme?</string>
+    <string name="theme_play_text">Do you want download from google playstore?</string>
+    <string name="theme_no_install">There is no Telegram Theme.</string>
+    <string name="theme_uninstall"> Uninstall succeeded!</string>
+    <string name="theme_store_toast">Coming soon.</string>
+    <string name="theme_store_run">Theme Store</string>
+    <string name="theme_store_run_text">You can now download Theme Store from Google Play.</string>
+
+    <!-- Settings -->
+    <string name="SecretSettings">Secret</string>
+    <string name="ThemeSettings">Theme/ChatRoom</string>
+
+    <!-- Item Store -->
+    <string name="item_store_title">Item Store</string>
+
+    <string name="item_store_head_items">Items</string>
+    <string name="item_store_head_support">Support</string>
+    <string name="item_store_head_transactions">Transactions</string>
+
+    <string name="item_store_setting">Setting</string>
+    <string name="item_store_stickers">Stickers</string>
+    <string name="item_store_sticker_info">Sticker Info</string>
+
+    <string name="item_store_purchase_list">Purchase</string>
+    <string name="item_store_gift_list">Gift Box</string>
+    <string name="item_store_help">Help</string>
+    <string name="item_store_help_detail">Help Details...</string>
+    <string name="item_store_tab_new">New</string>
+    <string name="item_store_tab_top">Top</string>
+    <string name="item_store_tab_free">Free</string>
+
+    <string name="item_store_gift">Gift</string>
+    <string name="item_store_download">Download</string>
+    <string name="item_store_install">Install</string>
+
+    <!-- Lab -->
+    <string name="LabTitle">TTalk Lab</string>
+    <string name="LabChatsNDisplay"><![CDATA[Chats & Display]]></string>
+    <string name="LabWelcome">Welcome to TTalk Lab.</string>
+    <string name="LabDetail">The features of TTalk Lab are may be removed at any time.</string>
+
+    <!--update text-->
+    <string name="updateText">Telegram for Android has been updated. New in version 2.9:\n\n- Install and share custom sticker sets like this one: https://telegram.me/addstickers/Animals\nhttp://sticker.ttalk.me/\n - If you\'re an artist, create custom sticker sets using our @stickers bot.\n\n- Use Telegram with Android Auto.</string>
+    <string name="updateBuild">536</string>
 </resources>

@@ -26,6 +26,9 @@ public class DividerCell extends BaseCell {
             paint.setStrokeWidth(1);
         }
     }
+    public void setColor(int color) {
+        paint.setColor(color);
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

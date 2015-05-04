@@ -23,14 +23,19 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.telegram.messenger.R;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.ContactsController;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
+
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.ui.Components.LayoutHelper;
 
 public class DrawerProfileCell extends FrameLayout {
 
@@ -44,64 +49,50 @@ public class DrawerProfileCell extends FrameLayout {
 
     public DrawerProfileCell(Context context) {
         super(context);
-        setBackgroundColor(0xff4c84b5);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("actionbar_title_bg");
+        if (drawable == null){
+            try {
+                setBackgroundColor(ThemeManager.getInstance().getThemeColor());
+            }catch(Exception e){
+                setBackgroundColor(0xff4c84b5);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= 16) setBackground(drawable);
+            else setBackgroundDrawable(drawable);
+        }
 
         shadowView = new ImageView(context);
         shadowView.setVisibility(INVISIBLE);
         shadowView.setScaleType(ImageView.ScaleType.FIT_XY);
         shadowView.setImageResource(R.drawable.bottom_shadow);
-        addView(shadowView);
-        LayoutParams layoutParams = (FrameLayout.LayoutParams) shadowView.getLayoutParams();
-        layoutParams.width = LayoutParams.MATCH_PARENT;
-        layoutParams.height = AndroidUtilities.dp(70);
-        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-        shadowView.setLayoutParams(layoutParams);
+        addView(shadowView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 70, Gravity.LEFT | Gravity.BOTTOM));
 
         avatarImageView = new BackupImageView(context);
-        avatarImageView.getImageReceiver().setRoundRadius(AndroidUtilities.dp(32));
-        addView(avatarImageView);
-        layoutParams = (LayoutParams) avatarImageView.getLayoutParams();
-        layoutParams.width = AndroidUtilities.dp(64);
-        layoutParams.height = AndroidUtilities.dp(64);
-        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-        layoutParams.leftMargin = AndroidUtilities.dp(16);
-        layoutParams.bottomMargin = AndroidUtilities.dp(67);
-        avatarImageView.setLayoutParams(layoutParams);
+        avatarImageView.getImageReceiver().setRoundRadius(AndroidUtilities.dp(50));
+        addView(avatarImageView, LayoutHelper.createFrame(64, 64, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 0, 67));
 
         nameTextView = new TextView(context);
-        nameTextView.setTextColor(0xffffffff);
         nameTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         nameTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         nameTextView.setLines(1);
         nameTextView.setMaxLines(1);
         nameTextView.setSingleLine(true);
         nameTextView.setGravity(Gravity.LEFT);
-        addView(nameTextView);
-        layoutParams = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();
-        layoutParams.width = LayoutParams.MATCH_PARENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
-        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-        layoutParams.leftMargin = AndroidUtilities.dp(16);
-        layoutParams.bottomMargin = AndroidUtilities.dp(28);
-        layoutParams.rightMargin = AndroidUtilities.dp(16);
-        nameTextView.setLayoutParams(layoutParams);
+        int header_name = ThemeManager.getInstance().getRemoteResourceColor("drawer_profile_name_text");
+        if(header_name != -1) nameTextView.setTextColor(header_name);
+        else nameTextView.setTextColor(0xffffffff);
+        addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 16, 28));
 
         phoneTextView = new TextView(context);
-        phoneTextView.setTextColor(0xffc2e5ff);
         phoneTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         phoneTextView.setLines(1);
         phoneTextView.setMaxLines(1);
         phoneTextView.setSingleLine(true);
         phoneTextView.setGravity(Gravity.LEFT);
-        addView(phoneTextView);
-        layoutParams = (FrameLayout.LayoutParams) phoneTextView.getLayoutParams();
-        layoutParams.width = LayoutParams.MATCH_PARENT;
-        layoutParams.height = LayoutParams.WRAP_CONTENT;
-        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-        layoutParams.leftMargin = AndroidUtilities.dp(16);
-        layoutParams.bottomMargin = AndroidUtilities.dp(9);
-        layoutParams.rightMargin = AndroidUtilities.dp(16);
-        phoneTextView.setLayoutParams(layoutParams);
+        int header_phone = ThemeManager.getInstance().getRemoteResourceColor("drawer_profile_phone_text");
+        if(header_phone != -1) phoneTextView.setTextColor(header_phone);
+        else phoneTextView.setTextColor(0xffc2e5ff);
+        addView(phoneTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 16, 0, 16, 9));
     }
 
     @Override
@@ -109,7 +100,11 @@ public class DrawerProfileCell extends FrameLayout {
         if (Build.VERSION.SDK_INT >= 21) {
             super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(148) + AndroidUtilities.statusBarHeight, MeasureSpec.EXACTLY));
         } else {
-            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(148), MeasureSpec.EXACTLY));
+            try {
+                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(148), MeasureSpec.EXACTLY));
+            } catch (Exception e) {
+                FileLog.e("tmessages", e);
+            }
         }
     }
 

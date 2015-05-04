@@ -3,21 +3,34 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.1.3'
+        classpath 'com.android.tools.build:gradle:1.2.3'
     }
 }
+
 apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
 }
 
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
 dependencies {
-    compile 'com.android.support:support-v4:22.0.+'
+    compile 'com.android.support:support-v4:22.1.+'
     compile 'com.google.android.gms:play-services:3.2.+'
-    compile 'net.hockeyapp.android:HockeySDK:3.5.+'
     compile 'com.googlecode.mp4parser:isoparser:1.0.+'
-    compile 'com.android.support:recyclerview-v7:+'
+    compile project(':TTalkSDK')
+    compile project(':EmoticonSDK')
+    compile project(':AppCompat')
+}
+
+
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyMMdd')
+    return formattedDate
 }
 
 android {
@@ -79,10 +92,31 @@ android {
         manifest.srcFile 'config/foss/AndroidManifest.xml'
     }
 
-    defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 22
-        versionCode 492
-        versionName "2.7.0"
+    lintOptions {
+        abortOnError false
+        warning 'InvalidPackage'
     }
+
+    defaultConfig {
+        applicationId "org.telegramkr.messenger"
+        minSdkVersion 10
+        targetSdkVersion 22
+        versionCode 543
+        versionName "2.9.1.1"
+    }
+/*
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                output.outputFile = new File(outputFile.parent,
+                        getDate() + "_"
+                        + "TelegramTalk_${variant.name}_"
+                        + defaultConfig.versionName + "_"
+                        + defaultConfig.versionCode
+                        + ".apk")
+            }
+        }
+    }
+*/
 }

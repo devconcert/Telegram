@@ -13,6 +13,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -28,6 +29,10 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import org.telegram.messenger.ApplicationLoader;
+import me.ttalk.sdk.ServiceAgent;
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.android.LocaleController;
@@ -36,7 +41,6 @@ import org.telegram.messenger.TLRPC;
 import org.telegram.messenger.FileLog;
 import org.telegram.android.MessagesController;
 import org.telegram.android.NotificationCenter;
-import org.telegram.messenger.R;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Cells.GreySectionCell;
 import org.telegram.ui.Cells.UserCell;
@@ -47,6 +51,7 @@ import org.telegram.ui.Components.AvatarUpdater;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.FrameLayoutFixed;
+import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
@@ -139,7 +144,12 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setAllowOverlayTitle(true);
         if (isBroadcast) {
             actionBar.setTitle(LocaleController.getString("NewBroadcastList", R.string.NewBroadcastList));
@@ -151,8 +161,10 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
+                        ServiceAgent.getInstance().logEvent("GroupCreateFinal.ActionBar", "Close");
                     finishFragment();
                 } else if (id == done_button) {
+                        ServiceAgent.getInstance().logEvent("GroupCreateFinal.ActionBar", "Done");
                     if (donePressed) {
                         return;
                     }
@@ -162,8 +174,10 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
                     donePressed = true;
 
                     if (isBroadcast) {
+                            ServiceAgent.getInstance().logEvent("GroupCreateFinal.ActionBar.Done", "BroadcastCreate");
                         MessagesController.getInstance().createChat(nameTextView.getText().toString(), selectedContacts, isBroadcast);
                     } else {
+                            ServiceAgent.getInstance().logEvent("GroupCreateFinal.ActionBar.Done", "GroupCreate");
                         if (avatarUpdater.uploadingAvatar != null) {
                             createAfterUpload = true;
                         } else {
@@ -194,8 +208,12 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
-
+        Drawable doneDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_done");
+        if (doneDrawable != null){
+            menu.addItemWithWidthRemote(done_button, doneDrawable, AndroidUtilities.dp(56));
+        }else {
+            menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+        }
         fragmentView = new LinearLayout(context);
         LinearLayout linearLayout = (LinearLayout) fragmentView;
         linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -203,8 +221,8 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
         FrameLayout frameLayout = new FrameLayoutFixed(context);
         linearLayout.addView(frameLayout);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) frameLayout.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         frameLayout.setLayoutParams(layoutParams);
 
@@ -227,13 +245,13 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
             avatarImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    ServiceAgent.getInstance().logEvent("GroupCreateFinal.Avatar", "Click");
                     if (getParentActivity() == null) {
                         return;
                     }
                     AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
 
                     CharSequence[] items;
-
                     if (avatar != null) {
                         items = new CharSequence[]{LocaleController.getString("FromCamera", R.string.FromCamera), LocaleController.getString("FromGalley", R.string.FromGalley), LocaleController.getString("DeletePhoto", R.string.DeletePhoto)};
                     } else {
@@ -244,17 +262,20 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             if (i == 0) {
+                                ServiceAgent.getInstance().logEvent("GroupCreateFinal.Avatar", "OpenCamera");
                                 avatarUpdater.openCamera();
                             } else if (i == 1) {
+                                ServiceAgent.getInstance().logEvent("GroupCreateFinal.Avatar", "OpenGallery");
                                 avatarUpdater.openGallery();
                             } else if (i == 2) {
+                                ServiceAgent.getInstance().logEvent("GroupCreateFinal.Avatar", "DeletePhoto");
                                 avatar = null;
                                 uploadedAvatar = null;
                                 avatarImage.setImage(avatar, "50_50", avatarDrawable);
                             }
                         }
                     });
-                    showAlertDialog(builder);
+                    showDialog(builder.create());
                 }
             });
         }
@@ -276,8 +297,8 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
         nameTextView.setTextColor(0xff212121);
         frameLayout.addView(nameTextView);
         layoutParams1 = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();
-        layoutParams1.width = FrameLayout.LayoutParams.MATCH_PARENT;
-        layoutParams1.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams1.width = LayoutHelper.MATCH_PARENT;
+        layoutParams1.height = LayoutHelper.WRAP_CONTENT;
         layoutParams1.leftMargin = LocaleController.isRTL ? AndroidUtilities.dp(16) : AndroidUtilities.dp(96);
         layoutParams1.rightMargin = LocaleController.isRTL ? AndroidUtilities.dp(96) : AndroidUtilities.dp(16);
         layoutParams1.gravity = Gravity.CENTER_VERTICAL;
@@ -313,8 +334,8 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
         listView.setAdapter(listAdapter = new ListAdapter(context));
         linearLayout.addView(listView);
         layoutParams = (LinearLayout.LayoutParams) listView.getLayoutParams();
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         listView.setLayoutParams(layoutParams);
 
         return fragmentView;
@@ -370,6 +391,12 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
     }
 
     @Override
+    public void onOpenAnimationEnd() {
+        nameTextView.requestFocus();
+        AndroidUtilities.showKeyboard(nameTextView);
+    }
+
+    @Override
     public void didReceivedNotification(int id, final Object... args) {
         if (id == NotificationCenter.updateInterfaces) {
             int mask = (Integer)args[0];
@@ -386,26 +413,21 @@ public class GroupCreateFinalActivity extends BaseFragment implements Notificati
             }
             donePressed = false;
         } else if (id == NotificationCenter.chatDidCreated) {
-            AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (progressDialog != null) {
-                        try {
-                            progressDialog.dismiss();
-                        } catch (Exception e) {
-                            FileLog.e("tmessages", e);
-                        }
-                    }
-                    int chat_id = (Integer)args[0];
-                    NotificationCenter.getInstance().postNotificationName(NotificationCenter.closeChats);
-                    Bundle args2 = new Bundle();
-                    args2.putInt("chat_id", chat_id);
-                    presentFragment(new ChatActivity(args2), true);
-                    if (uploadedAvatar != null) {
-                        MessagesController.getInstance().changeChatAvatar(chat_id, uploadedAvatar);
-                    }
+            if (progressDialog != null) {
+                try {
+                    progressDialog.dismiss();
+                } catch (Exception e) {
+                    FileLog.e("tmessages", e);
                 }
-            });
+            }
+            int chat_id = (Integer)args[0];
+            NotificationCenter.getInstance().postNotificationName(NotificationCenter.closeChats);
+            Bundle args2 = new Bundle();
+            args2.putInt("chat_id", chat_id);
+            presentFragment(new ChatActivity(args2), true);
+            if (uploadedAvatar != null) {
+                MessagesController.getInstance().changeChatAvatar(chat_id, uploadedAvatar);
+            }
         }
     }
 

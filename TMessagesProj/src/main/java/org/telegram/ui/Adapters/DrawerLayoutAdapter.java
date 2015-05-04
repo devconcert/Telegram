@@ -13,9 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import org.telegram.messenger.ApplicationLoader;
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.LocaleController;
 import org.telegram.android.MessagesController;
-import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.Cells.DrawerActionCell;
 import org.telegram.ui.Cells.DividerCell;
@@ -42,7 +44,7 @@ public class DrawerLayoutAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return UserConfig.isClientActivated() ? 10 : 0;
+        return UserConfig.isClientActivated() ? 11 : 0;
     }
 
     @Override
@@ -75,6 +77,8 @@ public class DrawerLayoutAdapter extends BaseAdapter {
         } else if (type == 2) {
             if (view == null) {
                 view = new DividerCell(mContext);
+                int color = ThemeManager.getInstance().getRemoteResourceColor("drawer_line_text");
+                if(color != -1) ((DividerCell)view).setColor(color);
             }
         } else if (type == 3) {
             if (view == null) {
@@ -82,7 +86,7 @@ public class DrawerLayoutAdapter extends BaseAdapter {
             }
             DrawerActionCell actionCell = (DrawerActionCell) view;
             if (i == 2) {
-                actionCell.setTextAndIcon(LocaleController.getString("NewGroup", R.string.NewGroup), R.drawable.menu_newgroup);
+                actionCell.setTextAndIcon(LocaleController.getString("NewMessages", R.string.NewMessages), R.drawable.menu_newgroup);
             } else if (i == 3) {
                 actionCell.setTextAndIcon(LocaleController.getString("NewSecretChat", R.string.NewSecretChat), R.drawable.menu_secret);
             } else if (i == 4) {
@@ -93,7 +97,11 @@ public class DrawerLayoutAdapter extends BaseAdapter {
                 actionCell.setTextAndIcon(LocaleController.getString("InviteFriends", R.string.InviteFriends), R.drawable.menu_invite);
             } else if (i == 8) {
                 actionCell.setTextAndIcon(LocaleController.getString("Settings", R.string.Settings), R.drawable.menu_settings);
-            } else if (i == 9) {
+            }
+            else if (i == 9) {
+                actionCell.setTextAndIcon(LocaleController.getString("LabTitle", R.string.LabTitle), R.drawable.ic_menu_lab);
+            }
+            else if (i == 10) {
                 actionCell.setTextAndIcon(LocaleController.getString("TelegramFaq", R.string.TelegramFaq), R.drawable.menu_help);
             }
         }

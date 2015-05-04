@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background_tab_pressed">#6633B5E5</color>
     <color name="divider">#dcdcdc</color>
+
+    <!-- Custom Theme -->
+    <color name="white">#ffffffff</color>
+    <color name="light_gray">#FFE5E5E5</color>
+    <color name="gray">#FFCCCCCC</color>
+    <color name="black">#FF000000</color>
+    <color name="light_blue">#FF78c8e6</color>
+    <color name="theme_default">#ff54759e</color>
+    <color name="theme_red">#ffa20000</color>
+    <color name="theme_green">#ff30d630</color>
+    <color name="theme_fucsia">#ffea148c</color>
+    <color name="theme_yellow">#f0eec506</color>
+    <color name="theme_violet">#ffdd8dfa</color>
+    <color name="theme_blue">#ff0606ee</color>
+    <color name="theme_purple">#ff5062b6</color>
+    <color name="theme_material_green">#ff009688</color>
+    <color name="theme_black">#ff111111</color>
+    <color name="theme_delete">#FFfb9de0</color>
 </resources>

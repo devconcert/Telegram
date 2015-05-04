@@ -14,8 +14,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.text.Editable;
-import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -38,6 +38,7 @@ import org.telegram.android.NotificationCenter;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ConnectionsManager;
 import org.telegram.messenger.FileLog;
+import me.ttalk.sdk.theme.ThemeManager;
 import org.telegram.messenger.R;
 import org.telegram.messenger.RPCRequest;
 import org.telegram.messenger.TLObject;
@@ -46,6 +47,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 
@@ -63,7 +65,14 @@ public class ChangeUsernameActivity extends BaseFragment {
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
+
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("Username", R.string.Username));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -76,10 +85,14 @@ public class ChangeUsernameActivity extends BaseFragment {
                 }
             }
         });
-
         ActionBarMenu menu = actionBar.createMenu();
-        doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
 
+        Drawable doneDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_done");
+        if (doneDrawable != null){
+            doneButton = menu.addItemWithWidthRemote(done_button, doneDrawable, AndroidUtilities.dp(56));
+        }else {
+            doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+        }
         TLRPC.User user = MessagesController.getInstance().getUser(UserConfig.getClientUserId());
         if (user == null) {
             user = UserConfig.getCurrentUser();
@@ -125,7 +138,7 @@ public class ChangeUsernameActivity extends BaseFragment {
         layoutParams.height = AndroidUtilities.dp(36);
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
         firstNameField.setLayoutParams(layoutParams);
 
         if (user != null && user.username != null && user.username.length() > 0) {
@@ -139,8 +152,8 @@ public class ChangeUsernameActivity extends BaseFragment {
         ((LinearLayout) fragmentView).addView(checkTextView);
         layoutParams = (LinearLayout.LayoutParams) checkTextView.getLayoutParams();
         layoutParams.topMargin = AndroidUtilities.dp(12);
-        layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT;
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
@@ -154,8 +167,8 @@ public class ChangeUsernameActivity extends BaseFragment {
         ((LinearLayout) fragmentView).addView(helpTextView);
         layoutParams = (LinearLayout.LayoutParams) helpTextView.getLayoutParams();
         layoutParams.topMargin = AndroidUtilities.dp(10);
-        layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         layoutParams.gravity = LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT;
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
@@ -215,7 +228,7 @@ public class ChangeUsernameActivity extends BaseFragment {
                 break;
         }
         builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), null);
-        showAlertDialog(builder);
+        showDialog(builder.create());
     }
 
     private boolean checkUserName(final String name, boolean alert) {

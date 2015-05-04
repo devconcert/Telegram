@@ -1,0 +1,27 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/setting_theme_list">
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/listView"
+        android:clipToPadding="false"
+        android:fadingEdge="none"
+        android:fadingEdgeLength="0dp"
+        android:paddingLeft="13dp"
+        android:paddingRight="13dp"
+        android:dividerHeight="0dp"
+        android:divider="@null"
+        android:scrollbars="none"/>
+    <TextView
+        android:layout_width="fill_parent" android:layout_height="50dip"
+        android:text="@string/theme_no_install"
+        android:textSize="18dp"
+        android:textColor="@color/button_material_dark"
+        android:gravity="center"
+        android:id="@android:id/empty"/>
+</LinearLayout>

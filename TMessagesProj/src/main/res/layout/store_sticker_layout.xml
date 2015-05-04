@@ -1,0 +1,22 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/setting_theme_list">
+    <ListView
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:id="@android:id/list"
+        android:clipToPadding="false"
+        android:fadingEdge="none"
+        android:fadingEdgeLength="0dp"
+        android:dividerHeight="0dp"
+        android:divider="@null"
+        android:drawSelectorOnTop="false"
+        android:scrollbars="none"/>
+    <TextView
+        android:layout_width="fill_parent" android:layout_height="50dip"
+        android:textSize="18dp"
+        android:textColor="@color/button_material_dark"
+        android:gravity="center"
+        android:id="@android:id/empty"/>
+</LinearLayout>

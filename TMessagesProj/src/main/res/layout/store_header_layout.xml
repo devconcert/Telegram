@@ -1,0 +1,13 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="match_parent"
+    android:layout_gravity="left"
+    android:id="@+id/fl_settings_theme">
+    <com.android.volley.toolbox.NetworkImageView
+        android:id="@+id/emoticon_ad"
+        android:layout_width="match_parent" android:layout_height="90dp"/>
+    <View android:id="@+id/settings_row_divider"
+        android:background="@color/divider"
+        android:layout_width="fill_parent" android:layout_height="1px"
+        android:layout_gravity="bottom"/>
+</FrameLayout>

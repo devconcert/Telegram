@@ -11,6 +11,7 @@ package org.telegram.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -27,6 +28,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.messenger.R;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.android.ContactsController;
@@ -35,12 +38,12 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.MessagesController;
 import org.telegram.android.NotificationCenter;
-import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.Components.LayoutHelper;
 
 public class ContactAddActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -79,7 +82,12 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
 
     @Override
     public View createView(Context context, LayoutInflater inflater) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        Drawable drawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_ab_back");
+        if (drawable != null){
+            actionBar.setBackButtonDrawable(drawable);
+        }else{
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setAllowOverlayTitle(true);
         if (addContact) {
             actionBar.setTitle(LocaleController.getString("AddContactTitle", R.string.AddContactTitle));
@@ -105,8 +113,13 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         });
 
         ActionBarMenu menu = actionBar.createMenu();
-        doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
 
+        Drawable doneDrawable = ThemeManager.getInstance().getRemoteResourceDrawable("ic_done");
+        if (doneDrawable != null){
+            doneButton = menu.addItemWithWidthRemote(done_button, doneDrawable, AndroidUtilities.dp(56));
+        }else {
+            doneButton = menu.addItemWithWidth(done_button, R.drawable.ic_done, AndroidUtilities.dp(56));
+        }
         fragmentView = new ScrollView(context);
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -129,8 +142,8 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         layoutParams.topMargin = AndroidUtilities.dp(24);
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
+        layoutParams.height = LayoutHelper.WRAP_CONTENT;
         frameLayout.setLayoutParams(layoutParams);
 
         avatarImage = new BackupImageView(context);
@@ -153,8 +166,8 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         nameTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         frameLayout.addView(nameTextView);
         layoutParams3 = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();
-        layoutParams3.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams3.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams3.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams3.height = LayoutHelper.WRAP_CONTENT;
         layoutParams3.leftMargin = AndroidUtilities.dp(LocaleController.isRTL ? 0 : 80);
         layoutParams3.rightMargin = AndroidUtilities.dp(LocaleController.isRTL ? 80 : 0);
         layoutParams3.topMargin = AndroidUtilities.dp(3);
@@ -171,8 +184,8 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         onlineTextView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT));
         frameLayout.addView(onlineTextView);
         layoutParams3 = (FrameLayout.LayoutParams) onlineTextView.getLayoutParams();
-        layoutParams3.width = FrameLayout.LayoutParams.WRAP_CONTENT;
-        layoutParams3.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        layoutParams3.width = LayoutHelper.WRAP_CONTENT;
+        layoutParams3.height = LayoutHelper.WRAP_CONTENT;
         layoutParams3.leftMargin = AndroidUtilities.dp(LocaleController.isRTL ? 0 : 80);
         layoutParams3.rightMargin = AndroidUtilities.dp(LocaleController.isRTL ? 80 : 0);
         layoutParams3.topMargin = AndroidUtilities.dp(32);
@@ -197,7 +210,7 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         layoutParams.height = AndroidUtilities.dp(36);
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
         firstNameField.setLayoutParams(layoutParams);
         firstNameField.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -229,7 +242,7 @@ public class ContactAddActivity extends BaseFragment implements NotificationCent
         layoutParams.height = AndroidUtilities.dp(36);
         layoutParams.leftMargin = AndroidUtilities.dp(24);
         layoutParams.rightMargin = AndroidUtilities.dp(24);
-        layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = LayoutHelper.MATCH_PARENT;
         lastNameField.setLayoutParams(layoutParams);
         lastNameField.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

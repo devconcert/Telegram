@@ -9,14 +9,18 @@
 package org.telegram.ui.ActionBar;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import org.telegram.android.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
+import me.ttalk.sdk.theme.ThemeManager;
+import org.telegram.ui.Components.LayoutHelper;
 
 public class ActionBarMenu extends LinearLayout {
 
@@ -32,21 +36,13 @@ public class ActionBarMenu extends LinearLayout {
         super(context);
     }
 
-    public ActionBarMenu(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public ActionBarMenu(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-    }
-
     public View addItemResource(int id, int resourceId) {
         LayoutInflater li = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = li.inflate(resourceId, null);
         view.setTag(id);
         addView(view);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams)view.getLayoutParams();
-        layoutParams.height = FrameLayout.LayoutParams.FILL_PARENT;
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
         view.setBackgroundResource(parentActionBar.itemsBackgroundResourceId);
         view.setLayoutParams(layoutParams);
         view.setOnClickListener(new OnClickListener() {
@@ -74,6 +70,10 @@ public class ActionBarMenu extends LinearLayout {
         return addItem(id, icon, parentActionBar.itemsBackgroundResourceId, null, width);
     }
 
+    public ActionBarMenuItem addItemWithWidthRemote(int id, Drawable drawable, int width) {
+        return addItemRemote(id, drawable, parentActionBar.itemsBackgroundDrawable, width);
+    }
+
     public ActionBarMenuItem addItem(int id, int icon, int backgroundResource, Drawable drawable, int width) {
         ActionBarMenuItem menuItem = new ActionBarMenuItem(getContext(), this, backgroundResource);
         menuItem.setTag(id);
@@ -84,8 +84,85 @@ public class ActionBarMenu extends LinearLayout {
         }
         addView(menuItem);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams)menuItem.getLayoutParams();
+        layoutParams.height = LayoutHelper.MATCH_PARENT;
+        layoutParams.width = width;
+        menuItem.setLayoutParams(layoutParams);
+        menuItem.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActionBarMenuItem item = (ActionBarMenuItem)view;
+                if (item.hasSubMenu()) {
+                    if (parentActionBar.actionBarMenuOnItemClick.canOpenMenu()) {
+                        item.toggleSubMenu();
+                    }
+                } else if (item.isSearchField()) {
+                    parentActionBar.onSearchFieldVisibilityChanged(item.toggleSearch());
+                } else {
+                    onItemClick((Integer)view.getTag());
+                }
+            }
+        });
+        return menuItem;
+    }
+
+    public ActionBarMenuItem addItemRemote(int id, int icon) {
+        return addItemRemote(id, icon, parentActionBar.itemsBackgroundDrawable);
+    }
+
+    public ActionBarMenuItem addItemRemote(int id, Drawable iconDrawable, Drawable backgroundDrawable, int width) {
+        ActionBarMenuItem menuItem = new ActionBarMenuItem(getContext(), this, backgroundDrawable);
+        menuItem.setTag(id);
+
+        try {
+            menuItem.iconView.setImageDrawable(iconDrawable);
+        } catch (Exception e) {
+            return null;
+        }
+
+        addView(menuItem);
+        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams)menuItem.getLayoutParams();
         layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
         layoutParams.width = width;
+        menuItem.setLayoutParams(layoutParams);
+        menuItem.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActionBarMenuItem item = (ActionBarMenuItem)view;
+                if (item.hasSubMenu()) {
+                    if (parentActionBar.actionBarMenuOnItemClick.canOpenMenu()) {
+                        item.toggleSubMenu();
+                    }
+                } else if (item.isSearchField()) {
+                    parentActionBar.onSearchFieldVisibilityChanged(item.toggleSearch());
+                } else {
+                    onItemClick((Integer)view.getTag());
+                }
+            }
+        });
+        return menuItem;
+    }
+
+    public ActionBarMenuItem addItemRemote(int id, int icon, Drawable backgroundDrawable) {
+        ActionBarMenuItem menuItem = new ActionBarMenuItem(getContext(), this, backgroundDrawable);
+        menuItem.setTag(id);
+
+        try {
+            PackageManager pm = ApplicationLoader.applicationContext.getPackageManager();
+            Resources resources = pm.getResourcesForApplication(ThemeManager.getInstance().getThemePackageName());
+            Drawable drawable = resources.getDrawable(icon);
+
+            try {
+                menuItem.iconView.setImageDrawable(drawable);
+            } catch (Exception e) {
+                return null;
+            }        } catch (Exception e) {
+            return null;
+        }
+
+        addView(menuItem);
+        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams)menuItem.getLayoutParams();
+        layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        layoutParams.width = AndroidUtilities.dp(56);
         menuItem.setLayoutParams(layoutParams);
         menuItem.setOnClickListener(new OnClickListener() {
             @Override

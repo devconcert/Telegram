@@ -95,7 +95,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
         tabsContainer = new LinearLayout(context);
         tabsContainer.setOrientation(LinearLayout.HORIZONTAL);
-        tabsContainer.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        tabsContainer.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         addView(tabsContainer);
 
         DisplayMetrics dm = getResources().getDisplayMetrics();
@@ -111,7 +111,8 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
         rectPaint.setAntiAlias(true);
         rectPaint.setStyle(Style.FILL);
 
-        defaultTabLayoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+        defaultTabLayoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutHelper.MATCH_PARENT);
+
 
         if (locale == null) {
             locale = getResources().getConfiguration().locale;
@@ -211,7 +212,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
     }
 
     private void updateExpanded() {
-        
+
     }
 
     private void updateTabStyles() {

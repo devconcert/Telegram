@@ -12,9 +12,10 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.telegram.messenger.R;
+import me.ttalk.sdk.core.SoundSearcher;
 import org.telegram.android.AndroidUtilities;
 import org.telegram.android.LocaleController;
-import org.telegram.messenger.R;
 import org.telegram.messenger.TLRPC;
 import org.telegram.android.ContactsController;
 import org.telegram.messenger.FileLog;
@@ -123,6 +124,11 @@ public class SearchAdapter extends BaseSearchAdapter {
                             }
 
                             String name = ContactsController.formatName(user.first_name, user.last_name).toLowerCase();
+                            try{
+                                name = name.replaceAll(" ","");
+                            } catch(Exception e ){
+                            }
+
                             String tName = LocaleController.getInstance().getTranslitString(name);
                             if (name.equals(tName)) {
                                 tName = null;
@@ -130,7 +136,7 @@ public class SearchAdapter extends BaseSearchAdapter {
 
                             int found = 0;
                             for (String q : search) {
-                                if (name.startsWith(q) || name.contains(" " + q) || tName != null && (tName.startsWith(q) || tName.contains(" " + q))) {
+                                if (SoundSearcher.matchString(name, q) || name.startsWith(q) || name.contains(" " + q) || tName != null && (tName.startsWith(q) || tName.contains(" " + q))) {
                                     found = 1;
                                 } else if (user.username != null && user.username.startsWith(q)) {
                                     found = 2;
@@ -138,9 +144,9 @@ public class SearchAdapter extends BaseSearchAdapter {
 
                                 if (found != 0) {
                                     if (found == 1) {
-                                        resultArrayNames.add(Utilities.generateSearchName(user.first_name, user.last_name, q));
+                                        resultArrayNames.add(AndroidUtilities.generateSearchName(user.first_name, user.last_name, q));
                                     } else {
-                                        resultArrayNames.add(Utilities.generateSearchName("@" + user.username, null, "@" + q));
+                                        resultArrayNames.add(AndroidUtilities.generateSearchName("@" + user.username, null, "@" + q));
                                     }
                                     resultArray.add(user);
                                     break;
